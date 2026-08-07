@@ -11,16 +11,19 @@ import { CurriculumRepository } from "../curriculum/curriculumRepository.js";
 import { SessionManager } from "../sessions/sessionManager.js";
 
 export class InterviewEngine {
+  private readonly analyzer: CandidateAnalyzer;
+
   constructor(
     private readonly curriculumRepository: CurriculumRepository,
     private readonly sessions: SessionManager,
-    private readonly analyzer = new CandidateAnalyzer(),
     private readonly planner = new InterviewPlanner(),
     private readonly questionGenerator = new QuestionGenerator(),
     private readonly evaluator = new AnswerEvaluator(),
     private readonly difficultyAdapter = new DifficultyAdapter(),
     private readonly feedbackGenerator = new FeedbackGenerator()
-  ) {}
+  ) {
+    this.analyzer = new CandidateAnalyzer(this.curriculumRepository.getAll());
+  }
 
   start(sessionId: string, candidate: Candidate): InterviewResponse {
     const analysis = this.analyzer.analyze(candidate);

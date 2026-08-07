@@ -8,21 +8,21 @@ import { FeedbackGenerator } from "../feedback/feedbackGenerator.js";
 export class InterviewEngine {
     curriculumRepository;
     sessions;
-    analyzer;
     planner;
     questionGenerator;
     evaluator;
     difficultyAdapter;
     feedbackGenerator;
-    constructor(curriculumRepository, sessions, analyzer = new CandidateAnalyzer(), planner = new InterviewPlanner(), questionGenerator = new QuestionGenerator(), evaluator = new AnswerEvaluator(), difficultyAdapter = new DifficultyAdapter(), feedbackGenerator = new FeedbackGenerator()) {
+    analyzer;
+    constructor(curriculumRepository, sessions, planner = new InterviewPlanner(), questionGenerator = new QuestionGenerator(), evaluator = new AnswerEvaluator(), difficultyAdapter = new DifficultyAdapter(), feedbackGenerator = new FeedbackGenerator()) {
         this.curriculumRepository = curriculumRepository;
         this.sessions = sessions;
-        this.analyzer = analyzer;
         this.planner = planner;
         this.questionGenerator = questionGenerator;
         this.evaluator = evaluator;
         this.difficultyAdapter = difficultyAdapter;
         this.feedbackGenerator = feedbackGenerator;
+        this.analyzer = new CandidateAnalyzer(this.curriculumRepository.getAll());
     }
     start(sessionId, candidate) {
         const analysis = this.analyzer.analyze(candidate);

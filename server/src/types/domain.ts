@@ -47,17 +47,66 @@ export type CandidateCatalog = {
   candidates: Candidate[];
 };
 
+export type Seniority = "emerging" | "mid" | "senior";
+
+export type ModuleProgress = {
+  moduleNumber: number;
+  title: string;
+  days: number[];
+  completedDays: number[];
+  skippedDays: number[];
+  failedDays: number[];
+  completionRate: number;
+};
+
+export type CandidateProfile = {
+  totalDays: number;
+  completedDays: number[];
+  skippedDays: number[];
+  failedDays: number[];
+  attempts: {
+    passed: number[];
+    average: number;
+    firstTryRate: number;
+  };
+  signals: {
+    commitDays: number;
+    missionsCompleted: number;
+    missionsFirstTry: number;
+  };
+  strengths: Array<{ day: number; title: string }>;
+  weakAreas: Array<{ day: number; title: string; reason: "skipped" | "failed" | "struggled"; attempts?: number }>;
+  experience: {
+    years: number;
+    seniority: Seniority;
+  };
+  completedModules: ModuleProgress[];
+};
+
+export type CandidateScore = {
+  completion: number;
+  mastery: number;
+  consistency: number;
+  overall: number;
+  confidence: number;
+  difficulty: Difficulty;
+};
+
 export type CandidateAnalysis = {
   id: string;
   name: string;
   role: string;
-  seniority: "emerging" | "mid" | "senior";
+  seniority: Seniority;
   completedDays: number[];
   skippedDays: number[];
   strongDays: number[];
   weakDays: number[];
-  confidence: number;
   averageAttempts: number;
+  confidence: number;
+  strengths: string[];
+  weaknesses: string[];
+  recommendedTopics: string[];
+  difficulty: Difficulty;
   riskNotes: string[];
 };
 
