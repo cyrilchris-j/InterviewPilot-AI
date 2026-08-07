@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CurriculumRepository } from "../curriculum/curriculumRepository.js";
 import { CandidateRepository } from "../candidate/candidateRepository.js";
-import { SessionMemory } from "../memory/sessionMemory.js";
+import { SessionManager } from "../sessions/sessionManager.js";
 import { InterviewEngine } from "./interviewEngine.js";
-test("interview completes after eight answers and covers at least four days", () => {
-    const engine = new InterviewEngine(new CurriculumRepository(), new SessionMemory());
+test("mock interview completes after eight answers and covers at least four days", () => {
+    const engine = new InterviewEngine(new CurriculumRepository(), new SessionManager(120 * 60_000));
     const candidate = new CandidateRepository().findById("CAND-003");
     assert.ok(candidate);
     const start = engine.start("test-session", candidate);

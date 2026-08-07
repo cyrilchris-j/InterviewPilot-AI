@@ -1,3 +1,4 @@
+import { AppError } from "../errors/AppError.js";
 import { CandidateAnalyzer } from "../services/candidateAnalyzer.js";
 import { InterviewPlanner } from "../planner/interviewPlanner.js";
 import { QuestionGenerator } from "./questionGenerator.js";
@@ -6,16 +7,16 @@ import { DifficultyAdapter } from "./difficultyAdapter.js";
 import { FeedbackGenerator } from "../feedback/feedbackGenerator.js";
 export class InterviewEngine {
     curriculumRepository;
-    memory;
+    sessions;
     analyzer;
     planner;
     questionGenerator;
     evaluator;
     difficultyAdapter;
     feedbackGenerator;
-    constructor(curriculumRepository, memory, analyzer = new CandidateAnalyzer(), planner = new InterviewPlanner(), questionGenerator = new QuestionGenerator(), evaluator = new AnswerEvaluator(), difficultyAdapter = new DifficultyAdapter(), feedbackGenerator = new FeedbackGenerator()) {
+    constructor(curriculumRepository, sessions, analyzer = new CandidateAnalyzer(), planner = new InterviewPlanner(), questionGenerator = new QuestionGenerator(), evaluator = new AnswerEvaluator(), difficultyAdapter = new DifficultyAdapter(), feedbackGenerator = new FeedbackGenerator()) {
         this.curriculumRepository = curriculumRepository;
-        this.memory = memory;
+        this.sessions = sessions;
         this.analyzer = analyzer;
         this.planner = planner;
         this.questionGenerator = questionGenerator;
@@ -40,9 +41,9 @@ export class InterviewEngine {
         };
         const firstQuestion = this.questionGenerator.generate(plan.items[0], session.askedQuestionKeys);
         session.currentQuestion = firstQuestion;
-        this.memory.set(session);
+        this.sessions.set(session);
         return {
-            reply: `Welcome, ${candidate.member.name}. I will tailor this interview to your cohort journey. Question 1 of ${plan.totalQuestions}: ${firstQuestion.text}`,
+            reply: "Welcome, " + candidate.member.name + ". I will tailor this mocked interview to your cohort journey. Question 1 of " + plan.totalQuestions + ": " + firstQuestion.text,
             done: false,
             sessionId,
             question: firstQuestion,
@@ -51,19 +52,18 @@ export class InterviewEngine {
         };
     }
     answer(sessionId, message) {
-        const session = this.memory.get(sessionId);
+        const session = this.sessions.get(sessionId);
         if (!session || !session.currentQuestion) {
-            throw new Error("Interview session was not found. Start the interview with a candidate first.");
+            throw new AppError("Interview session was not found. Start the interview with a candidate first.", 404, "SESSION_NOT_FOUND");
         }
         if (session.done) {
-            const feedback = this.feedbackGenerator.generate(session);
-            return this.doneResponse(session, feedback);
+            return this.doneResponse(session, this.feedbackGenerator.generate(session));
         }
         const evaluation = this.evaluator.evaluate(session.currentQuestion, message, session.analysis);
         session.turns.push({ question: session.currentQuestion, answer: message, evaluation });
         if (session.turns.length >= session.plan.totalQuestions) {
             session.done = true;
-            this.memory.set(session);
+            this.sessions.set(session);
             return this.doneResponse(session, this.feedbackGenerator.generate(session));
         }
         session.currentIndex += 1;
@@ -71,20 +71,23 @@ export class InterviewEngine {
         nextPlanItem.difficulty = this.difficultyAdapter.nextDifficulty(nextPlanItem.difficulty, evaluation);
         const nextQuestion = this.questionGenerator.generate(nextPlanItem, session.askedQuestionKeys, evaluation);
         session.currentQuestion = nextQuestion;
-        this.memory.set(session);
+        this.sessions.set(session);
         const transition = evaluation.verdict === "strong"
             ? "Good, that gives me enough signal to raise the bar."
             : evaluation.verdict === "mixed"
                 ? "Thanks, I want to sharpen that into a more practical angle."
                 : "Let's slow that down and make the next one more concrete.";
         return {
-            reply: `${transition} Question ${nextQuestion.index} of ${session.plan.totalQuestions}: ${nextQuestion.text}`,
+            reply: transition + " Question " + nextQuestion.index + " of " + session.plan.totalQuestions + ": " + nextQuestion.text,
             done: false,
             sessionId,
             question: nextQuestion,
             progress: this.progress(session),
             metrics: { latestScore: evaluation.score, confidence: evaluation.confidence, difficulty: nextQuestion.difficulty }
         };
+    }
+    reset(sessionId) {
+        this.sessions.delete(sessionId);
     }
     doneResponse(session, feedback) {
         return {

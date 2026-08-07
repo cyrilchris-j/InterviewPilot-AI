@@ -1,5 +1,6 @@
-import type { Candidate, Feedback, InterviewQuestion, InterviewSession } from "../types/domain.js";
+import type { Candidate, Feedback, InterviewSession } from "../types/domain.js";
 import type { InterviewResponse } from "../types/api.js";
+import { AppError } from "../errors/AppError.js";
 import { CandidateAnalyzer } from "../services/candidateAnalyzer.js";
 import { InterviewPlanner } from "../planner/interviewPlanner.js";
 import { QuestionGenerator } from "./questionGenerator.js";
@@ -7,12 +8,12 @@ import { AnswerEvaluator } from "../evaluation/answerEvaluator.js";
 import { DifficultyAdapter } from "./difficultyAdapter.js";
 import { FeedbackGenerator } from "../feedback/feedbackGenerator.js";
 import { CurriculumRepository } from "../curriculum/curriculumRepository.js";
-import { SessionMemory } from "../memory/sessionMemory.js";
+import { SessionManager } from "../sessions/sessionManager.js";
 
 export class InterviewEngine {
   constructor(
     private readonly curriculumRepository: CurriculumRepository,
-    private readonly memory: SessionMemory,
+    private readonly sessions: SessionManager,
     private readonly analyzer = new CandidateAnalyzer(),
     private readonly planner = new InterviewPlanner(),
     private readonly questionGenerator = new QuestionGenerator(),
@@ -39,10 +40,10 @@ export class InterviewEngine {
 
     const firstQuestion = this.questionGenerator.generate(plan.items[0], session.askedQuestionKeys);
     session.currentQuestion = firstQuestion;
-    this.memory.set(session);
+    this.sessions.set(session);
 
     return {
-      reply: `Welcome, ${candidate.member.name}. I will tailor this interview to your cohort journey. Question 1 of ${plan.totalQuestions}: ${firstQuestion.text}`,
+      reply: "Welcome, " + candidate.member.name + ". I will tailor this mocked interview to your cohort journey. Question 1 of " + plan.totalQuestions + ": " + firstQuestion.text,
       done: false,
       sessionId,
       question: firstQuestion,
@@ -52,13 +53,12 @@ export class InterviewEngine {
   }
 
   answer(sessionId: string, message: string): InterviewResponse {
-    const session = this.memory.get(sessionId);
+    const session = this.sessions.get(sessionId);
     if (!session || !session.currentQuestion) {
-      throw new Error("Interview session was not found. Start the interview with a candidate first.");
+      throw new AppError("Interview session was not found. Start the interview with a candidate first.", 404, "SESSION_NOT_FOUND");
     }
     if (session.done) {
-      const feedback = this.feedbackGenerator.generate(session);
-      return this.doneResponse(session, feedback);
+      return this.doneResponse(session, this.feedbackGenerator.generate(session));
     }
 
     const evaluation = this.evaluator.evaluate(session.currentQuestion, message, session.analysis);
@@ -66,7 +66,7 @@ export class InterviewEngine {
 
     if (session.turns.length >= session.plan.totalQuestions) {
       session.done = true;
-      this.memory.set(session);
+      this.sessions.set(session);
       return this.doneResponse(session, this.feedbackGenerator.generate(session));
     }
 
@@ -75,7 +75,7 @@ export class InterviewEngine {
     nextPlanItem.difficulty = this.difficultyAdapter.nextDifficulty(nextPlanItem.difficulty, evaluation);
     const nextQuestion = this.questionGenerator.generate(nextPlanItem, session.askedQuestionKeys, evaluation);
     session.currentQuestion = nextQuestion;
-    this.memory.set(session);
+    this.sessions.set(session);
 
     const transition =
       evaluation.verdict === "strong"
@@ -85,13 +85,17 @@ export class InterviewEngine {
           : "Let's slow that down and make the next one more concrete.";
 
     return {
-      reply: `${transition} Question ${nextQuestion.index} of ${session.plan.totalQuestions}: ${nextQuestion.text}`,
+      reply: transition + " Question " + nextQuestion.index + " of " + session.plan.totalQuestions + ": " + nextQuestion.text,
       done: false,
       sessionId,
       question: nextQuestion,
       progress: this.progress(session),
       metrics: { latestScore: evaluation.score, confidence: evaluation.confidence, difficulty: nextQuestion.difficulty }
     };
+  }
+
+  reset(sessionId: string): void {
+    this.sessions.delete(sessionId);
   }
 
   private doneResponse(session: InterviewSession, feedback: Feedback): InterviewResponse {
@@ -115,7 +119,9 @@ export class InterviewEngine {
       answered,
       total: session.plan.totalQuestions,
       percent: Math.round((answered / session.plan.totalQuestions) * 100),
-      coveredDays: Array.from(new Set(session.turns.map((turn) => turn.question.day).concat(session.currentQuestion?.day ?? []))).filter(Boolean)
+      coveredDays: Array.from(
+        new Set(session.turns.map((turn) => turn.question.day).concat(session.currentQuestion?.day ?? []))
+      ).filter(Boolean)
     };
   }
 }
