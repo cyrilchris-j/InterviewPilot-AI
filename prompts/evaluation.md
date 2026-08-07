@@ -1,0 +1,1 @@
+Evaluate the candidate answer with strict JSON. Score correctness, depth, confidence, practical understanding, communication, reasoning, production thinking, and architecture thinking from 1 to 5. Include concise evidence.

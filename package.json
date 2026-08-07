@@ -1,0 +1,22 @@
+{
+  "name": "interviewpilot-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI technical interview engine for a 31-day AI Engineering Cohort.",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "build": "npm run build --workspace server && npm run build --workspace client",
+    "test": "npm run test --workspace server",
+    "lint": "npm run lint --workspace client && npm run lint --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

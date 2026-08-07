@@ -1,0 +1,1 @@
+Generate one concise, human interview question grounded in the selected curriculum day, objective, candidate history, previous answer, current difficulty, and already asked questions. Do not duplicate earlier questions.

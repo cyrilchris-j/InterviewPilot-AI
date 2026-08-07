@@ -1,0 +1,1 @@
+Create an eight-question technical interview roadmap from the supplied curriculum and candidate learning signals. Cover at least four unique curriculum days, respect skipped prerequisites, and increase depth gradually.
