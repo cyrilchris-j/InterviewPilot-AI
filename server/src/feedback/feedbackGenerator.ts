@@ -1,10 +1,10 @@
-import type { Feedback, InterviewSession } from "../types/domain.js";
+import type { Feedback, InterviewSession, InterviewTurn } from "../types/domain.js";
 import { average, unique } from "../utils/text.js";
 import { summarizeTurns } from "./turnSummary.js";
 
 export class FeedbackGenerator {
   generate(session: InterviewSession): Feedback {
-    const turns = session.turns;
+    const turns = session.memory.history;
     const avg = Number(average(turns.map((turn) => turn.evaluation.score)).toFixed(1));
     const strengths = unique(turns.flatMap((turn) => turn.evaluation.detectedStrengths)).slice(0, 5);
     const gaps = unique(turns.flatMap((turn) => turn.evaluation.detectedGaps)).slice(0, 5);
@@ -34,7 +34,7 @@ export class FeedbackGenerator {
   }
 }
 
-function weakerGaps(turns: InterviewSession["turns"]): string[] {
+function weakerGaps(turns: readonly InterviewTurn[]): string[] {
   return [...turns]
     .sort((a, b) => a.evaluation.score - b.evaluation.score)
     .slice(0, 3)

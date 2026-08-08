@@ -9,7 +9,7 @@ export type TurnSummary = {
 
 const WEAK_TURN_LIMIT = 3;
 
-export function summarizeTurns(turns: InterviewTurn[]): TurnSummary {
+export function summarizeTurns(turns: readonly InterviewTurn[]): TurnSummary {
   const weakerTurns = [...turns]
     .sort((a, b) => a.evaluation.score - b.evaluation.score)
     .slice(0, WEAK_TURN_LIMIT);

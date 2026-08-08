@@ -2,7 +2,7 @@ import { average, unique } from "../utils/text.js";
 import { summarizeTurns } from "./turnSummary.js";
 export class FeedbackGenerator {
     generate(session) {
-        const turns = session.turns;
+        const turns = session.memory.history;
         const avg = Number(average(turns.map((turn) => turn.evaluation.score)).toFixed(1));
         const strengths = unique(turns.flatMap((turn) => turn.evaluation.detectedStrengths)).slice(0, 5);
         const gaps = unique(turns.flatMap((turn) => turn.evaluation.detectedGaps)).slice(0, 5);

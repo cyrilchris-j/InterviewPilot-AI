@@ -20,7 +20,7 @@ export type QuestionServiceInput = {
   difficulty: Difficulty;
   previousEvaluation?: AnswerEvaluation;
   previousAnswer?: string;
-  askedQuestions: string[];
+  askedQuestions: readonly string[];
 };
 
 export type EvaluationServiceInput = {
@@ -31,7 +31,7 @@ export type EvaluationServiceInput = {
 
 export type FeedbackServiceInput = {
   candidate: CandidateAnalysis;
-  turns: InterviewTurn[];
+  turns: readonly InterviewTurn[];
 };
 
 export interface QuestionAIService {

@@ -46,9 +46,10 @@ export class QuestionGenerator {
         askedKeys.add(key);
         return this.toInterviewQuestion(planItem, text);
     }
-    toInterviewQuestion(planItem, text) {
+    toInterviewQuestion(planItem, text, tag) {
+        const idTag = tag ? `-${tag}` : "";
         return {
-            id: `q-${planItem.index}-${planItem.day.day}`,
+            id: `q-${planItem.index}-${planItem.day.day}${idTag}`,
             index: planItem.index,
             text,
             day: planItem.day.day,
@@ -58,6 +59,12 @@ export class QuestionGenerator {
             type: planItem.questionType,
             difficulty: planItem.difficulty
         };
+    }
+    followUp(planItem, evaluation) {
+        const text = `Let's dig into Day ${planItem.day.day} (${planItem.day.title}) a bit more. ` +
+            `Give me the concrete first step you would take for ${planItem.objective.toLowerCase()}, ` +
+            "and name one metric that would tell you it worked.";
+        return this.toInterviewQuestion(planItem, text, "follow-up");
     }
     readableFocus(objective) {
         return objective

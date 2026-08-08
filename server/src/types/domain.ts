@@ -1,3 +1,5 @@
+import type { ConversationMemory } from "../memory/conversationMemory.js";
+
 export type CurriculumModule = {
   n: number;
   title: string;
@@ -217,9 +219,7 @@ export type InterviewTurn = {
   question: InterviewQuestion;
   answer: string;
   evaluation: AnswerEvaluation;
-};
-
-export type Feedback = {
+};export type Feedback = {
   summary: string;
   strengths: string[];
   gaps: string[];
@@ -237,8 +237,7 @@ export type InterviewSession = {
   plan: InterviewPlan;
   currentQuestion?: InterviewQuestion;
   currentIndex: number;
-  turns: InterviewTurn[];
-  askedQuestionKeys: Set<string>;
+  memory: ConversationMemory;
   createdAt: string;
   updatedAt: string;
   done: boolean;

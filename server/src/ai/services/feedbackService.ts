@@ -57,7 +57,7 @@ export class FeedbackService implements FeedbackAIService {
     };
   }
 
-  private formatTranscript(turns: InterviewTurn[]): string {
+  private formatTranscript(turns: readonly InterviewTurn[]): string {
     return turns
       .map(
         (turn, index) =>
@@ -71,7 +71,7 @@ export class FeedbackService implements FeedbackAIService {
       .join("\n\n");
   }
 
-  private formatTurns(turns: InterviewTurn[]): string {
+  private formatTurns(turns: readonly InterviewTurn[]): string {
     return turns
       .map(
         (turn) =>
