@@ -27,7 +27,10 @@ export class InterviewEngine {
 
   start(sessionId: string, candidate: Candidate): InterviewResponse {
     const analysis = this.analyzer.analyze(candidate);
-    const plan = this.planner.createPlan(this.curriculumRepository.getAll(), analysis);
+    const plan = this.planner.createPlan(
+      this.analyzer.profile(candidate),
+      this.curriculumRepository.getAll()
+    );
     const session: InterviewSession = {
       sessionId,
       candidate,

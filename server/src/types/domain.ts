@@ -18,6 +18,29 @@ export type Curriculum = {
   days: CurriculumDay[];
 };
 
+export type TopicStatus = "completed" | "failed" | "skipped" | "pending";
+
+export type CurriculumTopic = {
+  day: number;
+  title: string;
+  type: string;
+  moduleNumber: number;
+  moduleTitle: string;
+  objectives: string[];
+  tools: string[];
+  status: TopicStatus;
+};
+
+export type QuestionPoolItem = {
+  day: number;
+  dayTitle: string;
+  module: string;
+  objective: string;
+  type: QuestionType;
+  stage: InterviewStage;
+  difficulty: Difficulty;
+};
+
 export type CandidateMission = {
   day: number;
   title: string;
@@ -116,6 +139,7 @@ export type InterviewStage =
   | "Warmup"
   | "Intermediate"
   | "Advanced"
+  | "Concept"
   | "Scenario"
   | "Architecture"
   | "Tradeoff"
@@ -144,9 +168,19 @@ export type PlanItem = {
   rationale: string;
 };
 
+export type PlanRoadmap = {
+  position: number;
+  stage: InterviewStage;
+  questionType: QuestionType;
+  day: number;
+  dayTitle: string;
+  difficulty: Difficulty;
+};
+
 export type InterviewPlan = {
   totalQuestions: number;
   uniqueDays: number[];
+  roadmap: PlanRoadmap[];
   items: PlanItem[];
 };
 

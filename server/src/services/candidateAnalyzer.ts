@@ -14,6 +14,10 @@ export class CandidateAnalyzer {
     this.scoring = new CandidateScoring();
   }
 
+  profile(candidate: Candidate): CandidateProfile {
+    return this.profileBuilder.build(candidate);
+  }
+
   analyze(candidate: Candidate): CandidateAnalysis {
     const profile = this.profileBuilder.build(candidate);
     const score = this.scoring.score(profile);
