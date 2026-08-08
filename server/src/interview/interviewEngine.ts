@@ -111,7 +111,30 @@ export class InterviewEngine {
       sessionId,
       question: firstQuestion,
       progress: this.progress(session),
-      metrics: { latestScore: 0, confidence: analysis.confidence, difficulty: firstQuestion.difficulty }
+      metrics: { latestScore: 0, confidence: analysis.confidence, difficulty: firstQuestion.difficulty },
+      interviewPlan: {
+        totalQuestions: plan.totalQuestions,
+        uniqueDays: plan.uniqueDays,
+        roadmap: plan.roadmap.map((r) => ({
+          position: r.position,
+          day: r.day,
+          dayTitle: r.dayTitle,
+          stage: r.stage,
+          questionType: r.questionType,
+          difficulty: r.difficulty,
+          module: r.module,
+          rationale: r.rationale
+        }))
+      },
+      candidateAnalysis: {
+        completedDays: analysis.completedDays,
+        skippedDays: analysis.skippedDays,
+        strongDays: analysis.strongDays,
+        weakDays: analysis.weakDays,
+        difficulty: analysis.difficulty,
+        confidence: analysis.confidence,
+        averageAttempts: analysis.averageAttempts
+      }
     };
   }
 

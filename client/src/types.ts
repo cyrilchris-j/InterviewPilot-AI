@@ -54,6 +54,31 @@ export type Feedback = {
   overallRating: string;
 };
 
+export type InterviewPlan = {
+  totalQuestions: number;
+  uniqueDays: number[];
+  roadmap: Array<{
+    position: number;
+    day: number;
+    dayTitle: string;
+    stage: string;
+    questionType: string;
+    difficulty: string;
+    module: string;
+    rationale: string;
+  }>;
+};
+
+export type CandidateAnalysisSummary = {
+  completedDays: number[];
+  skippedDays: number[];
+  strongDays: number[];
+  weakDays: number[];
+  difficulty: string;
+  confidence: number;
+  averageAttempts: number;
+};
+
 export type InterviewResponse = {
   reply: string;
   done: boolean;
@@ -74,6 +99,10 @@ export type InterviewResponse = {
   candidates?: CandidateSummary[];
   candidateDetails?: CandidateDetail[];
   curriculumDays?: { day: number; title: string; type: string }[];
+  /** Real interview plan returned on session start */
+  interviewPlan?: InterviewPlan;
+  /** Real candidate analysis returned on session start */
+  candidateAnalysis?: CandidateAnalysisSummary;
 };
 
 export type TranscriptTurn = {

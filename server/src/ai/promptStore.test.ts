@@ -7,6 +7,7 @@ const prompts = new PromptStore();
 test("renders a prompt template and leaves no unresolved placeholders", () => {
   const rendered = prompts.render("question", {
     candidateProfile: "{}",
+    interviewContext: "(none)",
     dayNumber: "3",
     dayTitle: "RAG",
     dayType: "Lecture",

@@ -34,4 +34,29 @@ export type InterviewResponse = {
     firstTry: number;
   }>;
   curriculumDays?: Array<{ day: number; title: string; type: string }>;
+  /** Full interview plan returned on session start so the frontend can show real plan data */
+  interviewPlan?: {
+    totalQuestions: number;
+    uniqueDays: number[];
+    roadmap: Array<{
+      position: number;
+      day: number;
+      dayTitle: string;
+      stage: string;
+      questionType: string;
+      difficulty: string;
+      rationale: string;
+      module: string;
+    }>;
+  };
+  /** Candidate intelligence summary returned on session start */
+  candidateAnalysis?: {
+    completedDays: number[];
+    skippedDays: number[];
+    strongDays: number[];
+    weakDays: number[];
+    difficulty: string;
+    confidence: number;
+    averageAttempts: number;
+  };
 };

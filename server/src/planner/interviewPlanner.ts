@@ -70,6 +70,14 @@ export class InterviewPlanner {
     userProfile?: InterviewUserProfile
   ): InterviewPlan {
     const daysByNumber = new Map(curriculum.days.map((day) => [day.day, day]));
+    const moduleByDay = new Map<number, string>();
+    for (const module of curriculum.modules) {
+      const [start, end] = module.days;
+      for (let d = start; d <= end; d++) {
+        moduleByDay.set(d, module.title);
+      }
+    }
+
     const selectedDays = this.selectDays(profile, curriculum, daysByNumber);
     this.assertInDays(selectedDays);
 
@@ -83,7 +91,9 @@ export class InterviewPlanner {
       questionType: roadmapTemplate[position].questionType,
       day: day.day,
       dayTitle: day.title,
-      difficulty: this.difficultyFor(position, profile.experience.seniority, difficultyBias)
+      difficulty: this.difficultyFor(position, profile.experience.seniority, difficultyBias),
+      module: moduleByDay.get(day.day) ?? "General",
+      rationale: this.rationaleFor(profile, day.day, userProfile)
     }));
 
     const items: PlanItem[] = roadmap.map((step, position) => {
@@ -95,7 +105,7 @@ export class InterviewPlanner {
         objective: this.pickObjective(day, position),
         questionType: step.questionType,
         difficulty: step.difficulty,
-        rationale: this.rationaleFor(profile, step.day, userProfile)
+        rationale: step.rationale
       };
     });
 

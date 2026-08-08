@@ -177,6 +177,10 @@ export type PlanRoadmap = {
   day: number;
   dayTitle: string;
   difficulty: Difficulty;
+  /** Module this curriculum day belongs to */
+  module: string;
+  /** Rationale for selecting this day (traceable to candidate data) */
+  rationale: string;
 };
 
 export type InterviewPlan = {

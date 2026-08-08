@@ -6,7 +6,7 @@ import { CandidateProfile } from "./components/CandidateProfile";
 import { AiAnalysis } from "./components/AiAnalysis";
 import { ApiError, interview } from "./lib/api";
 import { createSessionId } from "./lib/session";
-import type { CandidateDetail, Feedback, InterviewResponse, TranscriptTurn } from "./types";
+import type { CandidateAnalysisSummary, CandidateDetail, Feedback, InterviewPlan, InterviewResponse, TranscriptTurn } from "./types";
 
 const AnalyticsDashboard = lazy(() =>
   import("./components/AnalyticsDashboard").then((mod) => ({ default: mod.AnalyticsDashboard }))
@@ -28,6 +28,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [animDone, setAnimDone] = useState(false);
+  const [interviewPlan, setInterviewPlan] = useState<InterviewPlan>();
+  const [candidateAnalysis, setCandidateAnalysis] = useState<CandidateAnalysisSummary>();
 
   // Load candidate details on mount
   useEffect(() => {
@@ -56,6 +58,9 @@ export default function App() {
       const response = await interview({ sessionId, candidateId: candidate.id });
       setCurrent(response);
       setTranscript([{ speaker: "pilot", text: response.reply }]);
+      // Store real plan and analysis for AiAnalysis screen
+      if (response.interviewPlan) setInterviewPlan(response.interviewPlan);
+      if (response.candidateAnalysis) setCandidateAnalysis(response.candidateAnalysis);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not start the interview.");
       setPhase("profile");
@@ -102,6 +107,8 @@ export default function App() {
     setError(undefined);
     setSelectedCandidate(undefined);
     setAnimDone(false);
+    setInterviewPlan(undefined);
+    setCandidateAnalysis(undefined);
     setSessionId(createSessionId());
     setPhase("landing");
   };
@@ -150,6 +157,8 @@ export default function App() {
         candidate={selectedCandidate}
         isLoadingSession={loading || !current}
         onReady={() => setAnimDone(true)}
+        interviewPlan={interviewPlan}
+        candidateAnalysis={candidateAnalysis}
       />
     );
   }
