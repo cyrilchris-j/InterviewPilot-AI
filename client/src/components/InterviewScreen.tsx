@@ -1,8 +1,17 @@
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Copy, RotateCcw, Send } from "lucide-react";
+import { Copy, ListChecks, MessageSquareText, RotateCcw, Send, Sparkles } from "lucide-react";
 import type { InterviewResponse, TranscriptTurn } from "../types";
-import { Button } from "./ui/Button";
-import { Panel } from "./ui/Panel";
+import { cn } from "../lib/utils";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Progress } from "./ui/progress";
+import { Separator } from "./ui/separator";
+import { Textarea } from "./ui/textarea";
+import { Typewriter } from "./Typewriter";
+import { TypingIndicator } from "./TypingIndicator";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
   response: InterviewResponse;
@@ -18,101 +27,238 @@ export function InterviewScreen({ response, transcript, answer, setAnswer, onSub
   const question = response.question;
   const progress = response.progress ?? { answered: 0, total: 8, percent: 0, coveredDays: [] };
   const confidence = response.metrics?.confidence ?? 5;
+const chatRef = useRef<HTMLDivElement>(null);
+  const [typingDone, setTypingDone] = useState(false);
+
+  useEffect(() => {
+    chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
+    setTypingDone(false);
+  }, [transcript]);
+
+  const pending = loading && transcript.length > 0 && transcript[transcript.length - 1].speaker === "candidate";
 
   return (
-    <main className="min-h-screen bg-ink text-white">
-      <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 md:grid-cols-[280px_1fr_320px] md:px-8">
-        <aside className="rounded-lg border border-line bg-panel p-4">
-          <div className="text-sm uppercase tracking-wide text-slate-400">Progress</div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full bg-cyan transition-all" style={{ width: `${progress.percent}%` }} />
+    <main className="min-h-screen">
+      <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 md:grid-cols-[300px_1fr_300px] md:px-8">
+        <Card className="flex flex-col border-border/70 p-5">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Progress</div>
+            <ThemeToggle />
           </div>
-          <div className="mt-3 text-3xl font-bold">{progress.answered}/{progress.total}</div>
-          <div className="mt-6 space-y-3">
-            {progress.coveredDays.map((day) => (
-              <div key={day} className="rounded-md border border-line bg-white/[0.03] px-3 py-2 text-sm">
-                Day {day}
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 rounded-md border border-amber/30 bg-amber/10 p-3">
-            <div className="text-sm text-amber">Confidence Meter</div>
-            <div className="mt-2 text-2xl font-semibold">{confidence}/5</div>
-          </div>
-        </aside>
 
-        <section className="flex min-h-[calc(100vh-40px)] flex-col rounded-lg border border-line bg-panel">
-          <div className="border-b border-line p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <div className="text-sm text-cyan">Question {question?.index ?? 1} · {question?.stage}</div>
-                <h2 className="mt-1 text-2xl font-semibold">{question?.dayTitle}</h2>
+          <div className="mt-4 flex items-end justify-between">
+            <div>
+              <div className="text-4xl font-bold tabular-nums">
+                {progress.answered}
+                <span className="text-xl text-muted-foreground">/{progress.total}</span>
               </div>
-              <div className="rounded-md border border-line px-3 py-2 text-sm text-slate-300">{question?.difficulty}</div>
+              <div className="text-xs text-muted-foreground">questions answered</div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold tabular-nums">{progress.percent}%</div>
+              <div className="text-xs text-muted-foreground">complete</div>
             </div>
           </div>
 
-          <div className="flex-1 space-y-4 overflow-y-auto p-5">
-            <AnimatePresence mode="popLayout">
-              {transcript.map((turn, index) => (
+          <Progress value={progress.percent} className="mt-4" />
+
+          <div className="mt-6">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Difficulty</div>
+            <Badge
+              tone={question?.difficulty === "hard" ? "destructive" : question?.difficulty === "easy" ? "success" : "warning"}
+              className="mt-2"
+            >
+              {question?.difficulty ?? "medium"}
+            </Badge>
+          </div>
+
+          <div className="mt-6">
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Confidence signal</div>
+            <div className="mt-2 flex items-center gap-1.5">
+              <Progress value={confidence} max={5} className="h-1.5 flex-1" indicatorClassName="bg-warning" />
+              <span className="text-sm font-semibold tabular-nums">{confidence}/5</span>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Covered days</div>
+          {progress.coveredDays.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {progress.coveredDays.map((day) => (
+                <Badge key={day} tone="secondary" className="px-2.5">
+                  Day {day}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-muted-foreground">No curriculum days covered yet.</p>
+          )}
+
+          <div className="mt-auto pt-6">
+            <Button variant="outline" size="sm" className="w-full" onClick={onRestart} icon={<RotateCcw size={15} />}>
+              Restart interview
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="flex h-[calc(100vh-40px)] flex-col overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-border p-5">
+            <div className="flex items-center gap-3">
+              <div className="grid size-10 place-items-center rounded-xl bg-primary/15 text-primary">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">
+                  Question <span className="font-semibold text-foreground">{question?.index ?? 1}</span> · {question?.stage}
+                </div>
+                <h2 className="text-lg font-semibold leading-tight">{question?.dayTitle}</h2>
+              </div>
+            </div>
+            <Badge tone="secondary" className="shrink-0">
+              {question?.type ?? "Concept"}
+            </Badge>
+          </div>
+
+          <div ref={chatRef} className="flex-1 space-y-5 overflow-y-auto p-5">
+            {transcript.map((turn, index) => {
+              const isLast = index === transcript.length - 1;
+              const animate = turn.speaker === "pilot" && isLast && !loading;
+              return (
                 <motion.div
                   key={`${turn.speaker}-${index}`}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className={`max-w-[86%] rounded-lg border p-4 ${
-                    turn.speaker === "pilot"
-                      ? "border-cyan/30 bg-cyan/10 text-slate-100"
-                      : "ml-auto border-line bg-white/[0.05] text-slate-200"
-                  }`}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className={cn("max-w-[88%]", turn.speaker === "candidate" ? "ml-auto" : "mr-auto")}
                 >
-                  <div className="mb-1 text-xs uppercase tracking-wide text-slate-400">
-                    {turn.speaker === "pilot" ? "InterviewPilot" : "Candidate"}
+                  <div className={cn("flex items-center gap-2", turn.speaker === "candidate" && "flex-row-reverse")}>
+                    <div
+                      className={cn(
+                        "grid size-7 place-items-center rounded-full text-xs font-bold",
+                        turn.speaker === "pilot" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {turn.speaker === "pilot" ? "IP" : "CA"}
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {turn.speaker === "pilot" ? "InterviewPilot" : "Candidate"}
+                    </span>
                   </div>
-                  <p className="whitespace-pre-wrap leading-7">{turn.text}</p>
+                  <div
+                    className={cn(
+                      "mt-1.5 rounded-2xl px-4 py-3 text-sm leading-7 shadow-sm",
+                      turn.speaker === "pilot"
+                        ? "rounded-tl-sm bg-secondary/70 text-foreground"
+                        : "rounded-tr-sm bg-primary/90 text-primary-foreground"
+                    )}
+                  >
+                    {animate ? (
+                      <Typewriter text={turn.text} speed={14} onComplete={() => setTypingDone(true)} />
+                    ) : (
+                      <p className="whitespace-pre-wrap">{turn.text}</p>
+                    )}
+                  </div>
                 </motion.div>
-              ))}
+              );
+            })}
+
+            <AnimatePresence>
+              {pending && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="flex items-center gap-2"
+                >
+                  <div className="grid size-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">IP</div>
+                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
+                    <TypingIndicator />
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
-          <div className="border-t border-line p-4">
-            <textarea
-              value={answer}
-              onChange={(event) => setAnswer(event.target.value)}
-              className="min-h-32 w-full resize-none rounded-md border border-line bg-ink p-4 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan"
-              placeholder="Answer as the candidate..."
-            />
-            <div className="mt-3 flex flex-wrap justify-between gap-3">
-              <Button variant="ghost" onClick={() => navigator.clipboard.writeText(transcript.map((turn) => `${turn.speaker}: ${turn.text}`).join("\n\n"))} icon={<Copy size={18} />}>
-                Copy Transcript
+          <div className="border-t border-border p-4">
+            <div className="relative">
+              <Textarea
+                value={answer}
+                onChange={(event) => setAnswer(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    onSubmit();
+                  }
+                }}
+                placeholder="Type your answer, then press Enter to send…"
+                disabled={loading}
+              />
+              <span className="absolute bottom-3 right-3 text-xs text-muted-foreground">
+                <kbd className="rounded border border-border bg-muted px-1.5 py-0.5">Enter</kbd> to send
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigator.clipboard.writeText(transcript.map((turn) => `${turn.speaker}: ${turn.text}`).join("\n\n"))}
+                icon={<Copy size={15} />}
+              >
+                Copy transcript
               </Button>
-              <div className="flex gap-3">
-                <Button variant="ghost" onClick={onRestart} icon={<RotateCcw size={18} />}>
-                  Restart
-                </Button>
-                <Button onClick={onSubmit} disabled={loading || answer.trim().length < 2} icon={<Send size={18} />}>
-                  Send
-                </Button>
-              </div>
+              <Button
+                onClick={onSubmit}
+                disabled={loading || answer.trim().length < 2}
+                icon={loading ? undefined : <Send size={16} />}
+                size="lg"
+              >
+                {loading ? "Analyzing answer…" : "Send answer"}
+              </Button>
             </div>
           </div>
-        </section>
+        </Card>
 
-        <Panel className="p-4">
-          <div className="text-sm uppercase tracking-wide text-slate-400">Topic Timeline</div>
-          <div className="mt-4 space-y-3">
-            {Array.from({ length: response.progress?.total ?? 8 }).map((_, index) => {
+        <Card className="flex flex-col p-5">
+          <div className="flex items-center gap-2">
+            <ListChecks size={16} className="text-primary" />
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Topic timeline</div>
+          </div>
+          <div className="mt-4 flex-1 space-y-3">
+            {Array.from({ length: progress.total }).map((_, index) => {
               const active = (question?.index ?? 1) === index + 1;
               const complete = progress.answered >= index + 1;
               return (
-                <div key={index} className={`rounded-md border p-3 ${active ? "border-cyan bg-cyan/10" : complete ? "border-amber/40 bg-amber/10" : "border-line bg-white/[0.03]"}`}>
-                  <div className="text-sm font-semibold">Question {index + 1}</div>
-                  <div className="mt-1 text-xs text-slate-400">{active ? question?.type : complete ? "Evaluated" : "Queued"}</div>
+                <div
+                  key={index}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg border p-3 transition-colors",
+                    active ? "border-primary/60 bg-primary/10" : complete ? "border-border bg-muted/30" : "border-border bg-background/40"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold tabular-nums",
+                      active ? "bg-primary text-primary-foreground" : complete ? "bg-warning/20 text-warning" : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    {complete && !active ? "✓" : index + 1}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">
+                      {active ? question?.dayTitle : complete ? "Evaluated" : "Queued"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{complete && !active ? "Scored" : active ? question?.type : "Upcoming"}</div>
+                  </div>
                 </div>
               );
             })}
           </div>
-        </Panel>
+          <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+            <MessageSquareText size={14} className="shrink-0 text-primary" />
+            Responses adapt: strong answers raise difficulty, weak answers trigger a scaffolded follow-up.
+          </div>
+        </Card>
       </div>
     </main>
   );

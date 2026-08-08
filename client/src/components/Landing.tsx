@@ -1,8 +1,12 @@
-import { BrainCircuit, Play, Radar, Route } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, BrainCircuit, CheckCircle2, GitBranch, Layers, Loader2, Radar, Sparkles, Target, UserRound } from "lucide-react";
 import type { CandidateSummary } from "../types";
-import { Button } from "./ui/Button";
-import { Panel } from "./ui/Panel";
-import { Metric } from "./Metric";
+import { cn } from "../lib/utils";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Skeleton } from "./ui/skeleton";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
   candidates: CandidateSummary[];
@@ -12,81 +16,136 @@ type Props = {
   loading: boolean;
 };
 
+const features = [
+  { icon: Target, title: "Adaptive questions", body: "Difficulty rises and falls with every answer, tuned to the candidate's 31-day cohort history." },
+  { icon: BrainCircuit, title: "Session memory", body: "Topics, scores, and mistakes persist so follow-ups build on what was already said." },
+  { icon: Radar, title: "Production-grounded", body: "Every score is tied to correctness, reasoning, communication, depth, and practical understanding." },
+  { icon: Layers, title: "Clear roadmap", body: "Close with topic scores, recommended curriculum days, and a learning path to act on." }
+];
+
 export function Landing({ candidates, selectedId, onSelect, onStart, loading }: Props) {
   const selected = candidates.find((candidate) => candidate.id === selectedId) ?? candidates[0];
 
   return (
-    <main className="min-h-screen bg-ink text-white">
-      <div className="mx-auto grid min-h-screen max-w-7xl gap-6 px-4 py-6 md:grid-cols-[0.85fr_1.15fr] md:px-8">
-        <aside className="flex flex-col justify-between rounded-lg border border-line bg-panel p-5">
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-60 [mask-image:radial-gradient(ellipse_70%_55%_at_50%_0%,black,transparent)]" />
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 md:px-8">
+        <header className="flex items-center justify-between py-6">
+          <div className="flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
+              <BrainCircuit size={22} />
+            </div>
+            <div>
+              <div className="text-base font-bold tracking-tight">InterviewPilot AI</div>
+              <div className="text-xs text-muted-foreground">Senior-engineer technical interviews</div>
+            </div>
+          </div>
+          <ThemeToggle />
+        </header>
+
+        <section className="grid items-start gap-10 pt-6 lg:grid-cols-[1.25fr_1fr] lg:pt-14">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="grid size-11 place-items-center rounded-md bg-cyan text-ink">
-                <BrainCircuit size={24} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">InterviewPilot AI</h1>
-                <p className="text-sm text-slate-400">AI Technical Interview Agent</p>
-              </div>
-            </div>
-            <div className="mt-8 space-y-3">
-              {candidates.map((candidate) => (
-                <button
-                  key={candidate.id}
-                  onClick={() => onSelect(candidate.id)}
-                  className={`w-full rounded-md border p-4 text-left transition ${
-                    selectedId === candidate.id ? "border-cyan bg-cyan/10" : "border-line bg-white/[0.03] hover:border-cyan/50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold">{candidate.name}</span>
-                    <span className="text-xs text-slate-400">{candidate.id}</span>
-                  </div>
-                  <div className="mt-1 text-sm text-slate-300">{candidate.role}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-          <Button onClick={onStart} disabled={!selected || loading} icon={<Play size={18} />} className="mt-6 w-full">
-            Start Interview
-          </Button>
-        </aside>
-
-        <section className="flex flex-col gap-6">
-          <div className="rounded-lg border border-line bg-[radial-gradient(circle_at_20%_10%,rgba(32,211,194,.18),transparent_34%),linear-gradient(135deg,#0e1a1f,#071014_68%)] p-6 md:p-8">
-            <div className="max-w-3xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-cyan/30 bg-cyan/10 px-3 py-1 text-sm text-cyan">
-                <Radar size={16} />
-                Session-based interview engine
-              </div>
-              <h2 className="text-4xl font-bold leading-tight md:text-6xl">
-                Senior-engineer interviews from real cohort history.
-              </h2>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-                The engine plans eight adaptive questions, tracks memory, raises or lowers difficulty, and turns every answer into feedback grounded in the 31-day curriculum.
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <Badge tone="success" className="gap-2 px-3 py-1 text-sm">
+                <Sparkles size={14} />
+                AI Interview Engine
+              </Badge>
+              <h1 className="mt-5 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
+                Interviews that feel like <span className="text-gradient whitespace-nowrap">real engineering</span> conversations.
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
+                An adaptive interviewer that reads your cohort history, plans eight grounded questions, tracks every answer in
+                memory, and turns the session into a scored learning roadmap — like a premium mock interview platform.
               </p>
-            </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mt-10 grid gap-4 sm:grid-cols-2"
+            >
+              {features.map((feature) => (
+                <Card key={feature.title} className="p-5 transition-colors hover:border-primary/50">
+                  <feature.icon className="size-5 text-primary" />
+                  <div className="mt-3 font-semibold">{feature.title}</div>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{feature.body}</p>
+                </Card>
+              ))}
+            </motion.div>
           </div>
 
-          {selected && (
-            <Panel className="p-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-semibold">{selected.name}</h3>
-                  <p className="text-slate-400">{selected.role} · {selected.yearsExperience} years experience</p>
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.15 }}>
+            <Card className="overflow-hidden border-border/70 shadow-xl">
+              <div className="border-b border-border bg-muted/40 p-5">
+                <div className="flex items-center gap-2">
+                  <UserRound size={16} className="text-primary" />
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Choose a candidate</h2>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-md border border-amber/30 bg-amber/10 px-3 py-2 text-sm text-amber">
-                  <Route size={16} />
-                  Personalized roadmap
-                </div>
+                <p className="mt-1 text-sm text-muted-foreground">The engine tailors the session to this profile's real cohort history.</p>
               </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <Metric label="Completed Missions" value={`${selected.completed}/31`} />
-                <Metric label="First Try" value={`${selected.firstTry}`} tone="amber" />
-                <Metric label="Interview Length" value="8 Qs" tone="rose" />
+
+              <div className="space-y-3 p-5">
+                {candidates.length === 0 ? (
+                  <>
+                    <Skeleton className="h-20" />
+                    <Skeleton className="h-20" />
+                  </>
+                ) : (
+                  candidates.map((candidate) => {
+                    const active = candidate.id === selectedId;
+                    return (
+                      <button
+                        key={candidate.id}
+                        onClick={() => onSelect(candidate.id)}
+                        className={cn(
+                          "group w-full rounded-lg border p-4 text-left transition-all",
+                          active ? "border-primary bg-primary/10 shadow-sm" : "border-border bg-background hover:border-primary/60 hover:bg-muted/40"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <div className="font-semibold">{candidate.name}</div>
+                            <div className="mt-0.5 text-sm text-muted-foreground">
+                              {candidate.role} · {candidate.yearsExperience} yrs
+                            </div>
+                          </div>
+                          <CheckCircle2 className={cn("size-5 shrink-0", active ? "text-primary" : "text-muted/40")} />
+                        </div>
+                        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <GitBranch size={12} /> {candidate.completed}/31 missions
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <Sparkles size={12} /> {candidate.firstTry} first-try
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
               </div>
-            </Panel>
-          )}
+
+              <div className="border-t border-border p-5">
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={onStart}
+                  disabled={!selected || loading}
+                  icon={loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+                >
+                  {loading ? "Preparing your interview..." : "Start Interview"}
+                </Button>
+                {selected && (
+                  <p className="mt-3 text-center text-xs text-muted-foreground">
+                    Plan adapts to <span className="font-semibold text-foreground">{selected.name}</span>'s profile.
+                  </p>
+                )}
+              </div>
+            </Card>
+          </motion.div>
         </section>
       </div>
     </main>
