@@ -77,13 +77,13 @@ export function AnalyticsDashboard({ feedback, transcript, onRestart }: Props) {
 
           <div className="flex flex-wrap items-center gap-3">
             <ThemeToggle />
-            <Button variant="outline" onClick={() => window.print()} icon={<Printer size={16} />}>
+            <Button variant="outline" onClick={() => window.print()} icon={<Printer size={16} />} aria-label="Print report">
               Print
             </Button>
-            <Button variant="outline" onClick={exportJson} icon={<FileJson size={16} />}>
+            <Button variant="outline" onClick={exportJson} icon={<FileJson size={16} />} aria-label="Export JSON report">
               Export report
             </Button>
-            <Button onClick={onRestart} icon={<RotateCcw size={16} />}>
+            <Button onClick={onRestart} icon={<RotateCcw size={16} />} aria-label="Start new interview">
               New interview
             </Button>
           </div>

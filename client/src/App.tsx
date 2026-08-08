@@ -3,7 +3,7 @@ import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
 import { FeedbackDashboard } from "./components/FeedbackDashboard";
 import { InterviewScreen } from "./components/InterviewScreen";
 import { Landing } from "./components/Landing";
-import { interview } from "./lib/api";
+import { ApiError, interview } from "./lib/api";
 import { createSessionId } from "./lib/session";
 import type { CandidateSummary, Feedback, InterviewResponse, TranscriptTurn } from "./types";
 
@@ -16,41 +16,51 @@ export default function App() {
   const [sessionId, setSessionId] = useState(createSessionId());
   const [current, setCurrent] = useState<InterviewResponse>();
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
-  const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState<Feedback>();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>();
 
   useEffect(() => {
+    let cancelled = false;
     interview({ action: "catalog" })
       .then((response) => {
+        if (cancelled) return;
         const loaded = response.candidates ?? [];
         setCandidates(loaded);
-        setSelectedId(loaded[0]?.id ?? "");
+        setSelectedId((current) => current || loaded[0]?.id || "");
       })
-      .catch((error) => console.error(error));
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof ApiError ? err.message : "Could not load candidates.");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const activeResponse = useMemo(() => current ?? { reply: "", done: false }, [current]);
 
   const start = async () => {
+    if (loading || !selectedId) return;
     setLoading(true);
+    setError(undefined);
     try {
-      const nextSession = createSessionId();
-      setSessionId(nextSession);
-      const response = await interview({ sessionId: nextSession, candidateId: selectedId });
+      const response = await interview({ sessionId, candidateId: selectedId });
       setCurrent(response);
       setTranscript([{ speaker: "pilot", text: response.reply }]);
       setPhase("interview");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not start the interview.");
     } finally {
       setLoading(false);
     }
   };
 
-  const submit = async () => {
+  const submit = async (answer: string) => {
     const message = answer.trim();
-    if (!message) return;
+    if (loading || !message) return;
     setLoading(true);
-    setAnswer("");
+    setError(undefined);
     const candidateTurn: TranscriptTurn = { speaker: "candidate", text: message };
     setTranscript((items) => [...items, candidateTurn]);
     try {
@@ -61,6 +71,8 @@ export default function App() {
         setFeedback(response.feedback);
         setPhase("feedback");
       }
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not send your answer.");
     } finally {
       setLoading(false);
     }
@@ -72,8 +84,8 @@ export default function App() {
     }
     setCurrent(undefined);
     setTranscript([]);
-    setAnswer("");
     setFeedback(undefined);
+    setError(undefined);
     setSessionId(createSessionId());
     setPhase("landing");
   };
@@ -93,14 +105,34 @@ export default function App() {
       <InterviewScreen
         response={activeResponse}
         transcript={transcript}
-        answer={answer}
-        setAnswer={setAnswer}
         onSubmit={submit}
         onRestart={restart}
         loading={loading}
+        error={error}
       />
     );
   }
 
-  return <Landing candidates={candidates} selectedId={selectedId} onSelect={setSelectedId} onStart={start} loading={loading} />;
+  return (
+    <Landing
+      candidates={candidates}
+      selectedId={selectedId}
+      onSelect={setSelectedId}
+      onStart={start}
+      loading={loading}
+      error={error}
+      onRetry={() => {
+        setError(undefined);
+        setLoading(true);
+        interview({ action: "catalog" })
+          .then((response) => {
+            const loaded = response.candidates ?? [];
+            setCandidates(loaded);
+            setSelectedId((current) => current || loaded[0]?.id || "");
+          })
+          .catch((err: unknown) => setError(err instanceof ApiError ? err.message : "Could not load candidates."))
+          .finally(() => setLoading(false));
+      }}
+    />
+  );
 }

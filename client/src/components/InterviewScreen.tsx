@@ -16,26 +16,25 @@ import { ThemeToggle } from "./ThemeToggle";
 type Props = {
   response: InterviewResponse;
   transcript: TranscriptTurn[];
-  answer: string;
-  setAnswer: (value: string) => void;
-  onSubmit: () => void;
+  onSubmit: (answer: string) => void;
   onRestart: () => void;
   loading: boolean;
+  error?: string;
 };
 
-export function InterviewScreen({ response, transcript, answer, setAnswer, onSubmit, onRestart, loading }: Props) {
+export function InterviewScreen({ response, transcript, onSubmit, onRestart, loading, error }: Props) {
+  const [answer, setAnswer] = useState("");
   const question = response.question;
   const progress = response.progress ?? { answered: 0, total: 8, percent: 0, coveredDays: [] };
   const confidence = response.metrics?.confidence ?? 5;
-const chatRef = useRef<HTMLDivElement>(null);
-  const [typingDone, setTypingDone] = useState(false);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
-    setTypingDone(false);
   }, [transcript]);
 
   const pending = loading && transcript.length > 0 && transcript[transcript.length - 1].speaker === "candidate";
+  const initialLoading = loading && transcript.length === 0;
 
   return (
     <main className="min-h-screen">
@@ -110,17 +109,30 @@ const chatRef = useRef<HTMLDivElement>(null);
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">
-                  Question <span className="font-semibold text-foreground">{question?.index ?? 1}</span> · {question?.stage}
+                  Question <span className="font-semibold text-foreground">{question?.index ?? 1}</span> · {question?.stage || "Loading..."}
                 </div>
-                <h2 className="text-lg font-semibold leading-tight">{question?.dayTitle}</h2>
+                {initialLoading ? (
+                  <div className="mt-1 h-6 w-48 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  <h2 className="text-lg font-semibold leading-tight">{question?.dayTitle}</h2>
+                )}
               </div>
             </div>
-            <Badge tone="secondary" className="shrink-0">
-              {question?.type ?? "Concept"}
-            </Badge>
+            {initialLoading ? (
+              <div className="h-5 w-16 animate-pulse rounded-full bg-muted"></div>
+            ) : (
+              <Badge tone="secondary" className="shrink-0">
+                {question?.type ?? "Concept"}
+              </Badge>
+            )}
           </div>
 
-          <div ref={chatRef} className="flex-1 space-y-5 overflow-y-auto p-5">
+          <div ref={chatRef} className="flex-1 space-y-5 overflow-y-auto p-5" aria-live="polite">
+            {error && (
+              <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
             {transcript.map((turn, index) => {
               const isLast = index === transcript.length - 1;
               const animate = turn.speaker === "pilot" && isLast && !loading;
@@ -154,7 +166,7 @@ const chatRef = useRef<HTMLDivElement>(null);
                     )}
                   >
                     {animate ? (
-                      <Typewriter text={turn.text} speed={14} onComplete={() => setTypingDone(true)} />
+                      <Typewriter text={turn.text} speed={14} />
                     ) : (
                       <p className="whitespace-pre-wrap">{turn.text}</p>
                     )}
@@ -171,8 +183,8 @@ const chatRef = useRef<HTMLDivElement>(null);
                   exit={{ opacity: 0 }}
                   className="flex items-center gap-2"
                 >
-                  <div className="grid size-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">IP</div>
-                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3">
+                  <div className="grid size-7 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground" aria-hidden="true">IP</div>
+                  <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3" aria-label="Interviewer is typing">
                     <TypingIndicator />
                   </div>
                 </motion.div>
@@ -183,12 +195,15 @@ const chatRef = useRef<HTMLDivElement>(null);
           <div className="border-t border-border p-4">
             <div className="relative">
               <Textarea
+                id="answer-input"
+                aria-label="Your answer"
                 value={answer}
                 onChange={(event) => setAnswer(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
-                    onSubmit();
+                    onSubmit(answer);
+                    setAnswer("");
                   }
                 }}
                 placeholder="Type your answer, then press Enter to send…"
@@ -208,7 +223,10 @@ const chatRef = useRef<HTMLDivElement>(null);
                 Copy transcript
               </Button>
               <Button
-                onClick={onSubmit}
+                onClick={() => {
+                  onSubmit(answer);
+                  setAnswer("");
+                }}
                 disabled={loading || answer.trim().length < 2}
                 icon={loading ? undefined : <Send size={16} />}
                 size="lg"

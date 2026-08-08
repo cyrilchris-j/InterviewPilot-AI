@@ -1,304 +1,21 @@
-<<<<<<< HEAD
 # 🎯 InterviewPilot AI
 
 > **Build the interviewer, not the interview.**
 
-InterviewPilot AI is an intelligent AI-powered technical interviewer that conducts **personalized, adaptive, multi-turn interviews** based on a candidate's learning journey through a 31-day AI Engineering Cohort.
-
-Instead of asking scripted questions, InterviewPilot analyzes the candidate's completed curriculum, adapts question difficulty in real time, asks contextual follow-up questions, and generates actionable feedback—simulating the experience of a real senior technical interviewer.
-
----
-
-## 🚀 Features
-
-- 🧠 Personalized interviews based on candidate progress
-- 💬 Multi-turn conversational interviewing
-- 🔄 Dynamic follow-up questions
-- 🎯 Adaptive difficulty adjustment
-- 📝 Context-aware conversation memory
-- 📊 Structured interview feedback
-- 📚 Curriculum-driven questioning
-- ⚡ Fast API backend
-- 🎨 Modern responsive frontend
-- 📈 Interactive interview analytics
-
----
-
-## ✨ How It Works
-
-```text
-Candidate Profile
-        │
-        ▼
-Candidate Analyzer
-        │
-        ▼
-Interview Planner
-        │
-        ▼
-Question Generator
-        │
-        ▼
-AI Interview Engine
-        │
-        ▼
-Answer Evaluation
-        │
-        ▼
-Difficulty Adapter
-        │
-        ▼
-Conversation Memory
-        │
-        ▼
-Final Feedback Report
-```
-
----
-
-## 🏗️ Tech Stack
-
-### Frontend
-
-- React
-- Vite
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Framer Motion
-
-### Backend
-
-- Node.js
-- Express
-- TypeScript
-
-### AI
-
-- OpenAI Responses API
-
-### Deployment
-
-- Vercel
-- Render
-
----
-
-## 📂 Project Structure
-
-```
-InterviewPilot-AI/
-
-├── client/
-│   ├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── hooks/
-│   └── assets/
-│
-├── server/
-│   ├── controllers/
-│   ├── routes/
-│   ├── services/
-│   ├── prompts/
-│   ├── memory/
-│   ├── planner/
-│   ├── evaluation/
-│   ├── feedback/
-│   ├── utils/
-│   └── types/
-│
-├── shared/
-│
-├── docs/
-│
-├── prompts/
-│
-├── curriculum.json
-├── candidates.json
-├── README.md
-├── PROMPTS.md
-└── LICENSE
-```
-
----
-
-# 🎯 Interview Flow
-
-```
-Start Interview
-
-↓
-
-Analyze Candidate
-
-↓
-
-Generate Personalized Questions
-
-↓
-
-Evaluate Response
-
-↓
-
-Generate Follow-up
-
-↓
-
-Update Context
-
-↓
-
-Repeat
-
-↓
-
-Generate Final Feedback
-```
-
----
-
-## 📊 Feedback Report
-
-Every completed interview generates a structured evaluation including:
-
-- Executive Summary
-- Technical Strengths
-- Knowledge Gaps
-- Communication Assessment
-- Recommended Learning Topics
-- Next Steps
-
----
-
-## 🌟 Core Capabilities
-
-- Adaptive Question Generation
-- Curriculum-Aware Reasoning
-- Candidate Progress Analysis
-- Conversation Memory
-- Difficulty Scaling
-- Technical Feedback Generation
-- AI-Powered Evaluation
-
----
-
-## 🔥 Why InterviewPilot?
-
-Traditional interview bots ask static questions.
-
-InterviewPilot behaves like a **real senior engineer** by:
-
-- Understanding what the candidate has already learned
-- Asking relevant technical questions
-- Generating intelligent follow-up questions
-- Adapting difficulty dynamically
-- Maintaining conversational context
-- Providing constructive technical feedback
-
----
-
-## 🛣️ Roadmap
-
-- [ ] Core Interview Engine
-- [ ] Candidate Analyzer
-- [ ] Curriculum Parser
-- [ ] Adaptive Question Generator
-- [ ] Conversation Memory
-- [ ] Feedback Engine
-- [ ] Beautiful Frontend
-- [ ] Deployment
-- [ ] Analytics Dashboard
-- [ ] Interview Transcript Export
-
----
-
-## ⚙️ Local Development
-
-```bash
-# Clone Repository
-
-git clone https://github.com/your-username/interviewpilot-ai.git
-
-cd interviewpilot-ai
-```
-
-### Backend
-
-```bash
-cd server
-
-npm install
-
-npm run dev
-```
-
-### Frontend
-
-```bash
-cd client
-
-npm install
-
-npm run dev
-```
-
----
-
-## 🌍 Environment Variables
-
-```env
-OPENAI_API_KEY=your_api_key
-```
-
----
-
-## 📸 Screenshots
-
-Coming soon...
-
----
-
-## 📄 AI Usage Log
-
-The project maintains a complete `PROMPTS.md` documenting all AI-assisted development prompts used throughout the hackathon.
-
----
-
-## 🤝 Contributors
-
-**Cyril Christopher J**  
-Team Leader — K.S.R. College of Engineering
-
----
-
-## 📜 License
-
-MIT License
-
----
-
-> **Built with AI. Guided by engineering. Designed for real technical interviews.**
-=======
-# InterviewPilot AI
-
-InterviewPilot AI is a session-based technical interview engine for a 31-day AI Engineering Cohort. It analyzes a candidate's completed missions, skipped topics, attempts, and learning signals, then conducts an adaptive senior-engineer-style interview with memory, follow-up questions, difficulty adjustment, and structured feedback.
-
-## Features
-
-- `POST /api/interview` single interview endpoint matching the provided technical specification
-- Session memory keyed by `sessionId`
-- Minimum 8-question interviews covering at least 4 curriculum days
-- Dynamic curriculum mapping from `server/data/curriculum.json`
-- Candidate-aware planning from `server/data/candidates.json` or request-provided candidate objects
-- Follow-up generation, answer evaluation, adaptive difficulty, and duplicate-question prevention
-- Final feedback with `summary`, `strengths[]`, `gaps[]`, and `next[]`
-- Feedback dashboard with radar chart, topic timeline, transcript, PDF print/export, copy transcript, restart, and share results
-- OpenAI Responses API integration with Structured Outputs when `OPENAI_API_KEY` is configured
-- Offline deterministic evaluator so judges can demo the product without credentials
-
-## Architecture
+InterviewPilot AI is a session-based, AI-powered technical interview engine for a 31-day AI Engineering Cohort. It analyzes a candidate's completed missions, skipped topics, attempts, and learning signals, then conducts an adaptive, senior-engineer-style interview with conversation memory, follow-up questions, difficulty adjustment, structured feedback, and a full analytics dashboard.
+
+## ✨ Features
+
+- **Personalized interviews** — every session is planned from the candidate's real cohort history (`candidateId` or an inline `candidate` object)
+- **Multi-turn conversations** — memory tracks topics, scores, and mistakes across turns
+- **Adaptive difficulty** — strong answers raise the bar, weak answers trigger a scaffolded follow-up
+- **Duplicate prevention** — normalized question keys guarantee the plan never repeats itself
+- **Structured feedback** — `summary`, `strengths[]`, `gaps[]`, `next[]`, per-topic scores, recommended days, and a learning path
+- **Analytics dashboard** — overall score ring, radar chart, session timeline, strong/weak topics, recommendations, full transcript, and JSON/PDF report export
+- **OpenAI Responses API** — structured JSON outputs when `OPENAI_API_KEY` is set
+- **Offline mode** — a deterministic evaluator keeps the product fully demoable without credentials
+
+## 🏗️ Architecture
 
 ```mermaid
 flowchart LR
@@ -306,22 +23,59 @@ flowchart LR
   C[Curriculum JSON] --> D[Interview Planner]
   B --> D
   D --> E[Question Generator]
-  E --> F[Interview Memory]
+  E --> F[Conversation Memory]
   F --> G[Answer Evaluator]
   G --> H[Difficulty Adapter]
   H --> E
   F --> I[Feedback Generator]
   I --> J[Feedback Dashboard]
+  J --> K[Analytics Dashboard]
 ```
 
-## Tech Stack
+## 🧰 Tech Stack
 
-- Frontend: React, Vite, TypeScript, TailwindCSS, Framer Motion, Recharts, Lucide icons
-- Backend: Node.js, Express, TypeScript, Zod
-- AI: OpenAI Responses API via `POST /v1/responses`
-- State: in-memory session store keyed by `sessionId`
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 18, Vite, TypeScript, TailwindCSS, Framer Motion, Recharts, Lucide icons |
+| Backend | Node.js, Express, TypeScript, Zod |
+| AI | OpenAI Responses API with Structured Outputs (`text.format.type = "json_schema"`) |
+| State | In-memory session store keyed by `sessionId` (with TTL) |
+| Tests | `node:test` (server) and Vitest + Testing Library (client) |
 
-## Installation
+## 📂 Project Structure
+
+```text
+.
+├── client/                 React interview cockpit and feedback/analytics dashboards
+│   └── src/
+│       ├── components/     Landing, InterviewScreen, FeedbackDashboard, AnalyticsDashboard, UI primitives
+│       ├── lib/            API client, theme, session, utilities
+│       └── types.ts        Shared client-side API types
+├── server/
+│   └── src/
+│       ├── ai/             OpenAI Responses API client, prompt store, services
+│       ├── candidate/      Candidate repository, profile builder, scoring
+│       ├── curriculum/     Curriculum repository
+│       ├── planner/        Interview planning engine
+│       ├── interview/      Interview engine, question generator, difficulty adapter
+│       ├── evaluation/     Answer evaluator (deterministic fallback)
+│       ├── feedback/       Feedback generator and turn summaries
+│       ├── memory/         Conversation memory
+│       ├── sessions/       Session manager
+│       ├── controllers/    HTTP handlers
+│       ├── routes/         Express routes
+│       ├── middleware/     Rate limiter, compression, helmet, error handling
+│       ├── validation/     Zod request schemas
+│       └── config/         Environment configuration
+├── shared/                 API contract notes
+├── docs/                   Provided technical specification
+├── prompts/                Modular production prompts (system, planner, question, evaluation, feedback)
+└── server/data/            candidates.json, curriculum.json
+```
+
+## 🚀 Getting Started
+
+Requires **Node.js 20+**.
 
 ```bash
 npm install
@@ -329,22 +83,29 @@ cp server/.env.example server/.env
 npm run dev
 ```
 
-The frontend runs at `http://localhost:5173` and proxies `/api` to the backend at `http://localhost:4000`.
+- Frontend: `http://localhost:5173` (proxies `/api` to the backend)
+- Backend: `http://localhost:4000`
+- Health check: `GET /api/health`
 
-## Environment Variables
+## ⚙️ Environment Variables
 
-```bash
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-5
-PORT=4000
-CLIENT_ORIGIN=http://localhost:5173
-```
+See `server/.env.example`:
 
-When `OPENAI_API_KEY` is absent, the backend runs in deterministic local mode while preserving the same API contract.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `OPENAI_API_KEY` | — | Enables AI services. When absent, a deterministic offline evaluator runs. |
+| `OPENAI_MODEL` | `gpt-5` | Model used by the Responses API |
+| `PORT` | `4000` | Backend port |
+| `CLIENT_ORIGIN` | `http://localhost:5173` | Allowed CORS origin |
+| `SESSION_TTL_MINUTES` | `120` | Interview session lifetime |
+| `REQUEST_BODY_LIMIT` | `1mb` | Max JSON request body size |
+| `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 
-## API
+## 📡 API
 
-### Start
+The single required endpoint is `POST /api/interview`.
+
+### Start an interview
 
 ```http
 POST /api/interview
@@ -356,25 +117,18 @@ Content-Type: application/json
 }
 ```
 
-You may also pass a full candidate object:
+You may also pass a full candidate object (matching the schema in `server/data/candidates.json`).
+
+### Answer a turn
 
 ```json
 {
   "sessionId": "demo-123",
-  "candidate": { "member": { "id": "CAND-003" }, "missions": [], "signals": {} }
+  "message": "I would trace the retrieval path, check metrics, and validate a fix."
 }
 ```
 
-### Turn
-
-```json
-{
-  "sessionId": "demo-123",
-  "message": "I would first inspect retrieval traces and compare query intent..."
-}
-```
-
-### Final
+### Completed interview
 
 ```json
 {
@@ -384,39 +138,41 @@ You may also pass a full candidate object:
     "summary": "...",
     "strengths": [],
     "gaps": [],
-    "next": []
+    "next": [],
+    "topicScores": [],
+    "recommendedDays": [],
+    "learningPath": [],
+    "overallRating": "Strong"
   }
 }
 ```
 
-The UI also calls the same endpoint with `{ "action": "catalog" }` to load candidate summaries without adding a second API route.
+Control actions (same endpoint):
 
-## Folder Structure
+- `{ "action": "catalog" }` — list candidate summaries for the landing page
+- `{ "action": "reset" }` — clear a session
 
-```text
-client/     React interview cockpit and feedback dashboard
-server/     Express API, interview engine, AI modules, memory, data loaders
-shared/     API contract notes
-docs/       Provided technical specification
-prompts/    Modular production prompts
+## 🧪 Testing
+
+```bash
+npm test                # server (node:test) + client (vitest)
+npm run lint            # typecheck for both workspaces
+npm run build           # compile server + client
 ```
 
-## Screenshots
+## ☁️ Deployment
 
-- Landing cockpit: candidate profile, topic readiness, and start controls
-- Interview screen: typing reply, question counter, confidence meter, timeline, and transcript
-- Feedback page: radar chart, topic history, strong/weak topics, and recommendations
+- **Frontend (Vercel)** — build command `npm run build --workspace client`, output `client/dist`. A `vercel.json` is provided for SPA routing.
+- **Backend (Render / Docker)** — 
+  - Standard: build command `npm install && npm run build --workspace server`, start command `npm run start --workspace server`.
+  - Docker: `docker-compose up -d` (uses the provided `Dockerfile` and `docker-compose.yml`).
 
-## Deployment
+Set `CLIENT_ORIGIN` to your deployed frontend origin and `OPENAI_API_KEY` to enable AI mode.
 
-- Frontend: Vercel, build command `npm run build --workspace client`, output `client/dist`
-- Backend: Render, build command `npm install && npm run build --workspace server`, start command `npm run start --workspace server`
+## 📄 AI Usage Log
 
-## Future Improvements
+`PROMPTS.md` documents every AI-assisted development prompt used during the hackathon.
 
-- Redis-backed distributed session memory
-- Authenticated candidate invitations
-- Voice-mode interviewing
-- Judge-facing replay mode with transcript scoring rationale
->>>>>>> f5fe3a6 (feat: initialize InterviewPilot AI architecture)
+---
 
+> **Built with AI. Guided by engineering. Designed for real technical interviews.**

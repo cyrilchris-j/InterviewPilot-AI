@@ -1,15 +1,45 @@
 import type { InterviewResponse } from "../types";
 
-export async function interview(payload: Record<string, unknown>): Promise<InterviewResponse> {
-  const response = await fetch("/api/interview", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+export class ApiError extends Error {
+  readonly status: number;
+  readonly code?: string;
+  readonly requestId?: string;
 
-  const json = (await response.json()) as InterviewResponse;
+  constructor(message: string, status: number, code?: string, requestId?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.requestId = requestId;
+  }
+}
+
+export async function interview(payload: Record<string, unknown>): Promise<InterviewResponse> {
+  let response: Response;
+  try {
+    response = await fetch("/api/interview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (error) {
+    throw new ApiError(
+      "Could not reach the interview engine. Is the backend running?",
+      0,
+      "NETWORK_ERROR"
+    );
+  }
+
+  let json: InterviewResponse;
+  try {
+    json = (await response.json()) as InterviewResponse;
+  } catch {
+    throw new ApiError(`Unexpected server response (HTTP ${response.status}).`, response.status, "BAD_RESPONSE");
+  }
+
   if (!response.ok) {
-    throw new Error(json.reply || "Interview request failed");
+    const error = (json as { error?: { code?: string; requestId?: string } }).error;
+    throw new ApiError(json.reply || "Interview request failed", response.status, error?.code, error?.requestId);
   }
   return json;
 }

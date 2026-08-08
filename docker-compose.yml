@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - CLIENT_ORIGIN=http://localhost:5173
+      - SESSION_TTL_MINUTES=120
+      - REQUEST_BODY_LIMIT=1mb
+      - LOG_LEVEL=info
+      # - OPENAI_API_KEY=your_key_here

@@ -43,3 +43,6 @@
 ## Implementation Notes
 
 The backend calls the OpenAI Responses API with `text.format.type = "json_schema"` for structured outputs when an API key is present. Offline mode uses the same TypeScript interfaces and deterministic scoring so the product remains demoable in a judging environment.
+
+---
+*Final Polish complete: Ready for Hackathon Submission.*

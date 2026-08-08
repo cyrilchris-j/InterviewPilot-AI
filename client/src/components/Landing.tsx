@@ -14,6 +14,8 @@ type Props = {
   onSelect: (id: string) => void;
   onStart: () => void;
   loading: boolean;
+  error?: string;
+  onRetry?: () => void;
 };
 
 const features = [
@@ -23,7 +25,7 @@ const features = [
   { icon: Layers, title: "Clear roadmap", body: "Close with topic scores, recommended curriculum days, and a learning path to act on." }
 ];
 
-export function Landing({ candidates, selectedId, onSelect, onStart, loading }: Props) {
+export function Landing({ candidates, selectedId, onSelect, onStart, loading, error, onRetry }: Props) {
   const selected = candidates.find((candidate) => candidate.id === selectedId) ?? candidates[0];
 
   return (
@@ -88,43 +90,57 @@ export function Landing({ candidates, selectedId, onSelect, onStart, loading }: 
               </div>
 
               <div className="space-y-3 p-5">
-                {candidates.length === 0 ? (
+                {error ? (
+                  <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-4">
+                    <div className="text-sm font-semibold text-destructive">Could not load interviews</div>
+                    <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+                    {onRetry && (
+                      <Button variant="outline" size="sm" className="mt-3" onClick={onRetry} disabled={loading}>
+                        {loading ? "Retrying…" : "Retry"}
+                      </Button>
+                    )}
+                  </div>
+                ) : candidates.length === 0 ? (
                   <>
                     <Skeleton className="h-20" />
                     <Skeleton className="h-20" />
                   </>
                 ) : (
-                  candidates.map((candidate) => {
-                    const active = candidate.id === selectedId;
-                    return (
-                      <button
-                        key={candidate.id}
-                        onClick={() => onSelect(candidate.id)}
-                        className={cn(
-                          "group w-full rounded-lg border p-4 text-left transition-all",
-                          active ? "border-primary bg-primary/10 shadow-sm" : "border-border bg-background hover:border-primary/60 hover:bg-muted/40"
-                        )}
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <div className="font-semibold">{candidate.name}</div>
-                            <div className="mt-0.5 text-sm text-muted-foreground">
-                              {candidate.role} · {candidate.yearsExperience} yrs
+                  <div role="radiogroup" aria-label="Choose a candidate">
+                    {candidates.map((candidate) => {
+                      const active = candidate.id === selectedId;
+                      return (
+                        <button
+                          key={candidate.id}
+                          role="radio"
+                          aria-checked={active}
+                          onClick={() => onSelect(candidate.id)}
+                          className={cn(
+                            "group mb-3 w-full rounded-lg border p-4 text-left transition-all last:mb-0",
+                            active ? "border-primary bg-primary/10 shadow-sm" : "border-border bg-background hover:border-primary/60 hover:bg-muted/40"
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <div className="font-semibold">{candidate.name}</div>
+                              <div className="mt-0.5 text-sm text-muted-foreground">
+                                {candidate.role} · {candidate.yearsExperience} yrs
+                              </div>
                             </div>
+                            <CheckCircle2 className={cn("size-5 shrink-0", active ? "text-primary" : "text-muted/40")} />
                           </div>
-                          <CheckCircle2 className={cn("size-5 shrink-0", active ? "text-primary" : "text-muted/40")} />
-                        </div>
-                        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="inline-flex items-center gap-1">
-                            <GitBranch size={12} /> {candidate.completed}/31 missions
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            <Sparkles size={12} /> {candidate.firstTry} first-try
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })
+                          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                            <span className="inline-flex items-center gap-1">
+                              <GitBranch size={12} /> {candidate.completed}/31 missions
+                            </span>
+                            <span className="inline-flex items-center gap-1">
+                              <Sparkles size={12} /> {candidate.firstTry} first-try
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
 
