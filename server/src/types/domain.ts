@@ -211,6 +211,7 @@ export type AnswerEvaluation = {
   verdict: "strong" | "mixed" | "weak";
   evidence: string;
   followUpHint: string;
+  nextAction: string;
   detectedStrengths: string[];
   detectedGaps: string[];
 };

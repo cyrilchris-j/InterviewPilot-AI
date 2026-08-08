@@ -21,6 +21,7 @@ function baseEvaluation(): AnswerEvaluation {
     verdict: "strong",
     evidence: "The answer referenced metrics and rollback planning.",
     followUpHint: "Probe failure modes under load.",
+    nextAction: "Escalate: push into tradeoffs or failure modes next.",
     detectedStrengths: ["Production-aware reasoning"],
     detectedGaps: ["No quantified latency target"]
   };

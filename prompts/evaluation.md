@@ -29,6 +29,7 @@ You are scoring a candidate's answer in a technical interview. Be strict, specif
 - `verdict` must be `strong`, `mixed`, or `weak`. Strong means most dimensions are 4+, mixed means a blend, weak means most dimensions are 2 or below.
 - `evidence` must quote one concrete observation from the answer that justifies the score.
 - `followUpHint` must be one concrete probing angle to ask next.
+- `nextAction` must be the single best immediate action for the interview loop: for strong answers escalate difficulty or depth; for mixed answers probe one concrete practical step; for weak answers re-ask the same objective with a simpler scaffolded question.
 - `detectedStrengths` and `detectedGaps` are short, specific, non-repetitive phrases.
 
 ## Output schema
@@ -48,6 +49,7 @@ Return a single JSON object with this exact shape:
   "verdict": "strong",
   "evidence": "short justification grounded in the answer",
   "followUpHint": "one concrete follow-up angle",
+  "nextAction": "escalate | probe | re-ask with scaffold",
   "detectedStrengths": ["specific strength"],
   "detectedGaps": ["specific gap"]
 }

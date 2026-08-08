@@ -31,6 +31,7 @@ function makeEvaluation(score: number, gaps: string[] = []): InterviewTurn["eval
     verdict: score >= 4 ? "strong" : score >= 2.8 ? "mixed" : "weak",
     evidence: "evidence",
     followUpHint: "follow up",
+    nextAction: "escalate",
     detectedStrengths: score >= 4 ? ["strong signal"] : [],
     detectedGaps: gaps
   };

@@ -75,6 +75,7 @@ test("follow-up references the previous answer and evaluation", () => {
             verdict: "weak",
             evidence: "answer stayed surface-level",
             followUpHint: "Probe the first concrete step",
+            nextAction: "Re-ask the same objective with a simpler, scaffolded question.",
             detectedStrengths: [],
             detectedGaps: ["Surface-level"]
         },

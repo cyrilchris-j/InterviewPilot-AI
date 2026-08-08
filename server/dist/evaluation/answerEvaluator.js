@@ -51,6 +51,12 @@ export class AnswerEvaluator {
             depth <= 2 ? "Answer stayed surface-level" : "",
             productionThinking <= 2 ? "Needs more production and evaluation detail" : ""
         ].filter(Boolean);
+        const verdict = score >= 4 ? "strong" : score >= 2.8 ? "mixed" : "weak";
+        const nextAction = verdict === "strong"
+            ? "Escalate: push into tradeoffs, failure modes, or architectural constraints next."
+            : verdict === "mixed"
+                ? "Probe one concrete practical step with a targeted follow-up."
+                : "Re-ask the same objective with a simpler, scaffolded question.";
         return {
             correctness,
             depth,
@@ -61,7 +67,7 @@ export class AnswerEvaluator {
             productionThinking,
             architectureThinking,
             score,
-            verdict: score >= 4 ? "strong" : score >= 2.8 ? "mixed" : "weak",
+            verdict,
             evidence: score >= 4
                 ? "The answer included relevant concepts, sequencing, and practical considerations."
                 : score >= 2.8
@@ -70,6 +76,7 @@ export class AnswerEvaluator {
             followUpHint: score >= 4
                 ? "Push into tradeoffs, failure modes, or architecture constraints."
                 : "Ask a simpler practical follow-up that lets the candidate reason step by step.",
+            nextAction,
             detectedStrengths,
             detectedGaps
         };

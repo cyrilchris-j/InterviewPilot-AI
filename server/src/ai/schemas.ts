@@ -19,6 +19,7 @@ export const evaluationOutputSchema = z.object({
   verdict: z.enum(["strong", "mixed", "weak"]),
   evidence: z.string().min(1),
   followUpHint: z.string().min(1),
+  nextAction: z.string().min(1),
   detectedStrengths: z.array(z.string().min(1)),
   detectedGaps: z.array(z.string().min(1))
 });
