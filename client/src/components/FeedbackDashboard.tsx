@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpenCheck, Download, MessageSquareText, RotateCcw, Share2, TrendingUp } from "lucide-react";
+import { BarChart3, BookOpenCheck, Download, MessageSquareText, RotateCcw, Share2, TrendingUp } from "lucide-react";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts";
 import type { Feedback, TranscriptTurn } from "../types";
 import { cn } from "../lib/utils";
@@ -15,6 +15,7 @@ type Props = {
   feedback: Feedback;
   transcript: TranscriptTurn[];
   onRestart: () => void;
+  onOpenAnalytics?: () => void;
 };
 
 const avgTopicScore = (feedback: Feedback) => {
@@ -25,7 +26,7 @@ const avgTopicScore = (feedback: Feedback) => {
 const ratingTone = (rating: string): "success" | "warning" | "destructive" | "secondary" =>
   rating === "Excellent" ? "success" : rating === "Strong" ? "success" : rating === "Developing" ? "warning" : "destructive";
 
-export function FeedbackDashboard({ feedback, transcript, onRestart }: Props) {
+export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnalytics }: Props) {
   const radar = feedback.topicScores.slice(0, 8).map((item) => ({ topic: `D${item.day}`, score: item.score }));
   const overall = Number(
     (feedback.topicScores.length
@@ -59,6 +60,11 @@ export function FeedbackDashboard({ feedback, transcript, onRestart }: Props) {
           </motion.div>
           <div className="flex flex-wrap items-center gap-3">
             <ThemeToggle />
+            {onOpenAnalytics && (
+              <Button variant="secondary" onClick={onOpenAnalytics} icon={<BarChart3 size={16} />}>
+                View analytics
+              </Button>
+            )}
             <Button variant="outline" onClick={() => window.print()} icon={<Download size={16} />}>
               Export PDF
             </Button>

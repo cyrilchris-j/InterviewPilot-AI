@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
 import { FeedbackDashboard } from "./components/FeedbackDashboard";
 import { InterviewScreen } from "./components/InterviewScreen";
 import { Landing } from "./components/Landing";
@@ -6,8 +7,10 @@ import { interview } from "./lib/api";
 import { createSessionId } from "./lib/session";
 import type { CandidateSummary, Feedback, InterviewResponse, TranscriptTurn } from "./types";
 
+type Phase = "landing" | "interview" | "feedback" | "analytics";
+
 export default function App() {
-  const [phase, setPhase] = useState<"landing" | "interview" | "feedback">("landing");
+  const [phase, setPhase] = useState<Phase>("landing");
   const [candidates, setCandidates] = useState<CandidateSummary[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [sessionId, setSessionId] = useState(createSessionId());
@@ -75,8 +78,14 @@ export default function App() {
     setPhase("landing");
   };
 
+  if (phase === "analytics" && feedback) {
+    return <AnalyticsDashboard feedback={feedback} transcript={transcript} onRestart={restart} />;
+  }
+
   if (phase === "feedback" && feedback) {
-    return <FeedbackDashboard feedback={feedback} transcript={transcript} onRestart={restart} />;
+    return (
+      <FeedbackDashboard feedback={feedback} transcript={transcript} onRestart={restart} onOpenAnalytics={() => setPhase("analytics")} />
+    );
   }
 
   if (phase === "interview") {
