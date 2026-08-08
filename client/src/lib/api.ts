@@ -16,8 +16,9 @@ export class ApiError extends Error {
 
 export async function interview(payload: Record<string, unknown>): Promise<InterviewResponse> {
   let response: Response;
+  const baseUrl = import.meta.env.VITE_API_URL || "";
   try {
-    response = await fetch("/api/interview", {
+    response = await fetch(`${baseUrl}/api/interview`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
