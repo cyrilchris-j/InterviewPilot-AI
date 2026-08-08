@@ -140,14 +140,24 @@ export class InterviewEngine {
         if (aiText) {
             return this.questionGenerator.toInterviewQuestion(planItem, aiText);
         }
-        return this.questionGenerator.generate(planItem, new Set(session.memory.askedQuestionKeys), previousEvaluation);
+        return this.questionGenerator.generate(planItem, {
+            candidate: session.analysis,
+            askedKeys: new Set(session.memory.askedQuestionKeys),
+            previousEvaluation,
+            previousAnswer: session.memory.latestTurn?.answer
+        });
     }
     async generateFollowUp(session, planItem, evaluation) {
         const aiText = await this.aiQuestionText(session, planItem, evaluation);
         if (aiText) {
             return this.questionGenerator.toInterviewQuestion(planItem, aiText, "follow-up");
         }
-        return this.questionGenerator.followUp(planItem, evaluation);
+        return this.questionGenerator.followUp(planItem, {
+            candidate: session.analysis,
+            askedKeys: new Set(session.memory.askedQuestionKeys),
+            previousEvaluation: evaluation,
+            previousAnswer: session.memory.latestTurn?.answer
+        });
     }
     async aiQuestionText(session, planItem, previousEvaluation) {
         if (!this.ai)
