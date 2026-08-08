@@ -4,10 +4,25 @@ import { CurriculumRepository } from "../curriculum/curriculumRepository.js";
 import { InterviewEngine } from "../interview/interviewEngine.js";
 import { SessionManager } from "../sessions/sessionManager.js";
 import { env } from "../config/env.js";
+import { createAiServices } from "../ai/index.js";
+import { logger } from "../logger/logger.js";
 const candidateRepository = new CandidateRepository();
 const curriculumRepository = new CurriculumRepository();
 const sessionManager = new SessionManager(env.SESSION_TTL_MINUTES * 60_000);
-const engine = new InterviewEngine(curriculumRepository, sessionManager);
+const aiServices = createAiServices({
+    apiKey: env.OPENAI_API_KEY,
+    model: env.OPENAI_MODEL,
+    promptsDir: env.PROMPTS_DIR
+});
+const engine = new InterviewEngine(curriculumRepository, sessionManager, aiServices ?? undefined);
+if (aiServices) {
+    logger.info("OpenAI Responses API enabled; interview engine uses AI services with structured outputs.", {
+        model: env.OPENAI_MODEL
+    });
+}
+else {
+    logger.info("OPENAI_API_KEY not set; interview engine runs in deterministic offline mode.");
+}
 function buildCatalogResponse() {
     return {
         reply: "Candidate catalog loaded.",
@@ -19,7 +34,7 @@ function buildCatalogResponse() {
 export const getInterviewCatalog = (_request, response) => {
     response.json(buildCatalogResponse());
 };
-export const postInterview = (request, response) => {
+export const postInterview = async (request, response, next) => {
     const body = request.body;
     if (body.action === "catalog") {
         response.json(buildCatalogResponse());
@@ -35,7 +50,12 @@ export const postInterview = (request, response) => {
         return;
     }
     if (body.message) {
-        response.json(engine.answer(sessionId, body.message));
+        try {
+            response.json(await engine.answer(sessionId, body.message));
+        }
+        catch (error) {
+            next(error);
+        }
         return;
     }
     const candidate = body.candidate ??
@@ -44,5 +64,10 @@ export const postInterview = (request, response) => {
     if (!candidate) {
         throw new AppError("A valid candidate object or candidateId is required.", 400, "CANDIDATE_REQUIRED");
     }
-    response.json(engine.start(sessionId, candidate));
+    try {
+        response.json(await engine.start(sessionId, candidate));
+    }
+    catch (error) {
+        next(error);
+    }
 };

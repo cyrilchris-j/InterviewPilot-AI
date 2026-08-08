@@ -1,0 +1,57 @@
+import { PromptStore, type PromptVariables } from "../promptStore.js";
+import { OpenAIResponsesClient } from "../responsesClient.js";
+import { questionOutputSchema } from "../schemas.js";
+import type { QuestionAIService, QuestionServiceInput } from "../types.js";
+import { describeCandidate, loadSystemPrompt, renderTaskPrompt } from "./base.js";
+
+const PROMPT_NAME = "question";
+
+export class QuestionService implements QuestionAIService {
+  constructor(
+    private readonly prompts: PromptStore,
+    private readonly client: OpenAIResponsesClient
+  ) {}
+
+  async generate(input: QuestionServiceInput): Promise<{ text: string }> {
+    return this.client.create({
+      name: "interview_question",
+      instructions: loadSystemPrompt(this.prompts),
+      input: renderTaskPrompt(this.prompts, PROMPT_NAME, this.variables(input)),
+      schema: questionOutputSchema
+    });
+  }
+
+  /**
+   * Streaming variant for the question generator. Ready for a future
+   * server-sent event endpoint; the interview flow currently uses
+   * {@link generate}.
+   */
+  async *stream(input: QuestionServiceInput): AsyncIterable<string> {
+    yield* this.client.stream({
+      instructions: loadSystemPrompt(this.prompts),
+      input: renderTaskPrompt(this.prompts, PROMPT_NAME, this.variables(input))
+    });
+  }
+
+  private variables(input: QuestionServiceInput): PromptVariables {
+    return {
+      candidateProfile: describeCandidate(input.candidate),
+      dayNumber: String(input.day.day),
+      dayTitle: input.day.title,
+      dayType: input.day.type,
+      objectives: input.day.objectives.length ? input.day.objectives.join("; ") : "(none)",
+      tools: input.day.tools.length ? input.day.tools.join(", ") : "(none)",
+      stage: input.stage,
+      questionType: input.questionType,
+      difficulty: input.difficulty,
+      objective: input.objective,
+      previousEvaluation: input.previousEvaluation
+        ? JSON.stringify(input.previousEvaluation)
+        : "(none)",
+      previousAnswer: input.previousAnswer?.trim() ? input.previousAnswer.trim() : "(none)",
+      askedQuestions: input.askedQuestions.length
+        ? input.askedQuestions.map((question, index) => `${index + 1}. ${question}`).join("\n")
+        : "(none)"
+    };
+  }
+}

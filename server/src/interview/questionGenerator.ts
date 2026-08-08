@@ -50,6 +50,10 @@ export class QuestionGenerator {
     }
     askedKeys.add(key);
 
+    return this.toInterviewQuestion(planItem, text);
+  }
+
+  toInterviewQuestion(planItem: PlanItem, text: string): InterviewQuestion {
     return {
       id: `q-${planItem.index}-${planItem.day.day}`,
       index: planItem.index,
@@ -59,7 +63,7 @@ export class QuestionGenerator {
       objective: planItem.objective,
       stage: planItem.stage,
       type: planItem.questionType,
-      difficulty
+      difficulty: planItem.difficulty
     };
   }
 

@@ -7,7 +7,10 @@ const envSchema = z.object({
   CLIENT_ORIGIN: z.string().min(1).default("http://localhost:5173"),
   REQUEST_BODY_LIMIT: z.string().min(1).default("1mb"),
   SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(120),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info")
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_MODEL: z.string().min(1).default("gpt-5"),
+  PROMPTS_DIR: z.string().min(1).optional()
 });
 
 const parsed = envSchema.safeParse(process.env);

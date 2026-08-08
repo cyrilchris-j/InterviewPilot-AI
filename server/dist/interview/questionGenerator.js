@@ -44,6 +44,9 @@ export class QuestionGenerator {
             key = `${normalizeKey(text)}-${suffix}`;
         }
         askedKeys.add(key);
+        return this.toInterviewQuestion(planItem, text);
+    }
+    toInterviewQuestion(planItem, text) {
         return {
             id: `q-${planItem.index}-${planItem.day.day}`,
             index: planItem.index,
@@ -53,7 +56,7 @@ export class QuestionGenerator {
             objective: planItem.objective,
             stage: planItem.stage,
             type: planItem.questionType,
-            difficulty
+            difficulty: planItem.difficulty
         };
     }
     readableFocus(objective) {
