@@ -29,7 +29,7 @@ export class OpenAIResponsesClient {
     apiKey: string,
     private readonly model: string
   ) {
-    this.client = new OpenAI({ apiKey });
+    this.client = new OpenAI({ apiKey, maxRetries: 0, timeout: 3000 });
   }
 
   get modelName(): string {

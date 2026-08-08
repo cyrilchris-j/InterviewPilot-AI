@@ -13,7 +13,7 @@ export class OpenAIResponsesClient {
     client;
     constructor(apiKey, model) {
         this.model = model;
-        this.client = new OpenAI({ apiKey });
+        this.client = new OpenAI({ apiKey, maxRetries: 0, timeout: 3000 });
     }
     get modelName() {
         return this.model;
