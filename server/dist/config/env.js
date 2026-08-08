@@ -8,7 +8,7 @@ const envSchema = z.object({
     SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(120),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
     OPENAI_API_KEY: z.string().min(1).optional(),
-    OPENAI_MODEL: z.string().min(1).default("gpt-5"),
+    OPENAI_MODEL: z.string().min(1).default("gpt-4o"),
     PROMPTS_DIR: z.string().min(1).optional()
 });
 const parsed = envSchema.safeParse(process.env);

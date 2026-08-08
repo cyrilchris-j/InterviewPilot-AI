@@ -38,8 +38,28 @@ export function InterviewScreen({ response, transcript, onSubmit, onRestart, loa
 
   return (
     <main className="min-h-screen">
+      {/* Mobile-only progress strip */}
+      <div className="flex items-center justify-between border-b border-border bg-card px-4 py-3 md:hidden">
+        <div className="flex items-center gap-3">
+          <div className="grid size-8 place-items-center rounded-lg bg-primary/15 text-primary">
+            <Sparkles size={15} />
+          </div>
+          <span className="text-sm font-semibold">
+            Q{progress.answered + 1} / {progress.total}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge tone={question?.difficulty === "hard" ? "destructive" : question?.difficulty === "easy" ? "success" : "warning"}>
+            {question?.difficulty ?? "medium"}
+          </Badge>
+          <ThemeToggle />
+          <Button variant="ghost" size="sm" onClick={onRestart} icon={<RotateCcw size={14} />} />
+        </div>
+      </div>
+      <Progress value={progress.percent} className="h-1 rounded-none md:hidden" />
+
       <div className="mx-auto grid max-w-7xl gap-5 px-4 py-5 md:grid-cols-[300px_1fr_300px] md:px-8">
-        <Card className="flex flex-col border-border/70 p-5">
+        <Card className="hidden flex-col border-border/70 p-5 md:flex">
           <div className="flex items-center justify-between">
             <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Progress</div>
             <ThemeToggle />
@@ -101,7 +121,7 @@ export function InterviewScreen({ response, transcript, onSubmit, onRestart, loa
           </div>
         </Card>
 
-        <Card className="flex h-[calc(100vh-40px)] flex-col overflow-hidden">
+        <Card className="flex h-[calc(100dvh-56px)] flex-col overflow-hidden md:h-[calc(100vh-40px)]">
           <div className="flex items-center justify-between gap-3 border-b border-border p-5">
             <div className="flex items-center gap-3">
               <div className="grid size-10 place-items-center rounded-xl bg-primary/15 text-primary">
@@ -237,7 +257,7 @@ export function InterviewScreen({ response, transcript, onSubmit, onRestart, loa
           </div>
         </Card>
 
-        <Card className="flex flex-col p-5">
+        <Card className="hidden flex-col p-5 md:flex">
           <div className="flex items-center gap-2">
             <ListChecks size={16} className="text-primary" />
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Topic timeline</div>

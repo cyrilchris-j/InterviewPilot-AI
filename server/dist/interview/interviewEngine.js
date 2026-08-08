@@ -48,13 +48,18 @@ export class InterviewEngine {
         session.memory.setCurrentTopic(this.topicSnapshot(firstPlanItem));
         session.memory.recordQuestion(firstQuestion);
         this.sessions.set(session);
+        const weakSummary = analysis.weakDays.length > 0
+            ? `I'll pay close attention to ${analysis.weakDays.slice(0, 2).map(d => `Day ${d}`).join(' and ')}, which showed some gaps in your journey.`
+            : "Your curriculum history looks solid across the board.";
+        const strengthNote = analysis.strongDays.length > 0
+            ? ` You showed real mastery on ${analysis.strongDays.slice(0, 2).map(d => `Day ${d}`).join(' and ')}, so I'll push depth there.`
+            : "";
         return {
-            reply: "Welcome, " +
-                candidate.member.name +
-                ". I will tailor this mocked interview to your cohort journey. Question 1 of " +
-                plan.totalQuestions +
-                ": " +
-                firstQuestion.text,
+            reply: `Welcome, ${candidate.member.name}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, ` +
+                `${analysis.skippedDays.length} skipped, and an average of ${analysis.averageAttempts} attempts per mission. ` +
+                `${weakSummary}${strengthNote} ` +
+                `We'll cover ${plan.uniqueDays.length} curriculum topics across ${plan.totalQuestions} questions. Ready? ` +
+                `Question 1 of ${plan.totalQuestions}: ${firstQuestion.text}`,
             done: false,
             sessionId,
             question: firstQuestion,

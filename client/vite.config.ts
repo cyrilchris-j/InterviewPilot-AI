@@ -10,6 +10,18 @@ export default defineConfig({
     setupFiles: ["./src/setupTests.ts"],
     globals: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom"],
+          "vendor-motion": ["framer-motion"],
+          "vendor-charts": ["recharts"],
+          "vendor-icons": ["lucide-react"],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

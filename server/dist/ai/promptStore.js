@@ -26,7 +26,7 @@ export class PromptStore {
     }
     render(name, variables = {}) {
         const template = this.load(name);
-        return template.replace(PLACEHOLDER_PATTERN, (match, key) => {
+        return template.replace(PLACEHOLDER_PATTERN, (_match, key) => {
             if (!(key in variables)) {
                 throw new Error(`Prompt "${name}" references unknown variable "{{${key}}}".`);
             }

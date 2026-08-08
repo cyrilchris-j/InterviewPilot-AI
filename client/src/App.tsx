@@ -1,11 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
-import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
-import { FeedbackDashboard } from "./components/FeedbackDashboard";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { InterviewScreen } from "./components/InterviewScreen";
 import { Landing } from "./components/Landing";
 import { ApiError, interview } from "./lib/api";
 import { createSessionId } from "./lib/session";
 import type { CandidateSummary, Feedback, InterviewResponse, TranscriptTurn } from "./types";
+
+const AnalyticsDashboard = lazy(() =>
+  import("./components/AnalyticsDashboard").then((mod) => ({ default: mod.AnalyticsDashboard }))
+);
+const FeedbackDashboard = lazy(() =>
+  import("./components/FeedbackDashboard").then((mod) => ({ default: mod.FeedbackDashboard }))
+);
+
 
 type Phase = "landing" | "interview" | "feedback" | "analytics";
 
@@ -91,12 +97,18 @@ export default function App() {
   };
 
   if (phase === "analytics" && feedback) {
-    return <AnalyticsDashboard feedback={feedback} transcript={transcript} onRestart={restart} />;
+    return (
+      <Suspense fallback={<div className="grid h-screen place-items-center text-muted-foreground">Loading analytics…</div>}>
+        <AnalyticsDashboard feedback={feedback} transcript={transcript} onRestart={restart} />
+      </Suspense>
+    );
   }
 
   if (phase === "feedback" && feedback) {
     return (
-      <FeedbackDashboard feedback={feedback} transcript={transcript} onRestart={restart} onOpenAnalytics={() => setPhase("analytics")} />
+      <Suspense fallback={<div className="grid h-screen place-items-center text-muted-foreground">Loading feedback…</div>}>
+        <FeedbackDashboard feedback={feedback} transcript={transcript} onRestart={restart} onOpenAnalytics={() => setPhase("analytics")} />
+      </Suspense>
     );
   }
 
