@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, Check, Sparkles } from "lucide-react";
+import { BrainCircuit, Check, Loader2, Sparkles } from "lucide-react";
 import { cn } from "../lib/utils";
 import type { CandidateDetail } from "../types";
 
 type Props = {
   candidate: CandidateDetail;
   onReady: () => void;
+  isLoadingSession?: boolean;
 };
 
 function buildChecklist(candidate: CandidateDetail): string[] {
@@ -29,9 +30,9 @@ function buildChecklist(candidate: CandidateDetail): string[] {
   ];
 }
 
-const ITEM_DELAY_MS = 420;
+const ITEM_DELAY_MS = 180;
 
-export function AiAnalysis({ candidate, onReady }: Props) {
+export function AiAnalysis({ candidate, onReady, isLoadingSession }: Props) {
   const checklist = buildChecklist(candidate);
   const [visible, setVisible] = useState<number[]>([]);
   const [done, setDone] = useState(false);
@@ -50,18 +51,18 @@ export function AiAnalysis({ candidate, onReady }: Props) {
       setVisible((prev) => [...prev, i]);
       i++;
       if (i < checklist.length) {
-        setTimeout(reveal, i === checklist.length - 1 ? 700 : ITEM_DELAY_MS);
+        setTimeout(reveal, i === checklist.length - 1 ? 250 : ITEM_DELAY_MS);
       } else {
         setTimeout(() => {
           if (!cancelled) {
             setDone(true);
-            setTimeout(() => onReadyRef.current(), 1200);
+            setTimeout(() => onReadyRef.current(), 300);
           }
-        }, 800);
+        }, 200);
       }
     }
 
-    setTimeout(reveal, 400);
+    setTimeout(reveal, 200);
     return () => { cancelled = true; };
   }, [checklist.length]);
 
@@ -71,7 +72,7 @@ export function AiAnalysis({ candidate, onReady }: Props) {
       <motion.div
         className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/6 blur-3xl"
         animate={{ scale: done ? 1.4 : 1 }}
-        transition={{ duration: 1.4 }}
+        transition={{ duration: 1 }}
       />
 
       <div className="relative w-full max-w-sm">
@@ -84,7 +85,7 @@ export function AiAnalysis({ candidate, onReady }: Props) {
                 ? "0 0 60px hsl(var(--primary)/0.6), 0 0 120px hsl(var(--primary)/0.15)"
                 : "0 0 24px hsl(var(--primary)/0.35)",
             }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.6 }}
           >
             {done ? <Sparkles size={28} /> : <BrainCircuit size={28} />}
           </motion.div>
@@ -109,9 +110,9 @@ export function AiAnalysis({ candidate, onReady }: Props) {
               <AnimatePresence key={item}>
                 {isVisible && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
                     className={cn(
                       "flex items-center gap-3 rounded-2xl border px-4 py-3",
                       isLast
@@ -122,7 +123,7 @@ export function AiAnalysis({ candidate, onReady }: Props) {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ delay: 0.1, type: "spring", stiffness: 400 }}
+                      transition={{ type: "spring", stiffness: 500 }}
                       className={cn(
                         "grid size-5 shrink-0 place-items-center rounded-full",
                         isLast ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
@@ -143,13 +144,20 @@ export function AiAnalysis({ candidate, onReady }: Props) {
         {/* Interview plan preview */}
         {done && (
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
+            transition={{ duration: 0.3 }}
             className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4"
           >
-            <div className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
-              Interview Plan
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                Interview Plan
+              </span>
+              {isLoadingSession && (
+                <span className="flex items-center gap-1.5 text-xs text-primary">
+                  <Loader2 size={12} className="animate-spin" /> Starting session…
+                </span>
+              )}
             </div>
             <div className="space-y-1.5 text-xs text-muted-foreground">
               <div className="flex items-center justify-between">
@@ -180,12 +188,11 @@ export function AiAnalysis({ candidate, onReady }: Props) {
             className="mt-6 h-0.5 w-full overflow-hidden rounded-full bg-border"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
           >
             <motion.div
               className="h-full bg-primary"
               animate={{ x: ["-100%", "100%"] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
             />
           </motion.div>
         )}

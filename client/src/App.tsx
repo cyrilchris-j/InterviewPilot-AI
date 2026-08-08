@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { InterviewScreen } from "./components/InterviewScreen";
 import { Landing } from "./components/Landing";
 import { CandidateSelector } from "./components/CandidateSelector";
@@ -27,6 +27,7 @@ export default function App() {
   const [feedback, setFeedback] = useState<Feedback>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>();
+  const [animDone, setAnimDone] = useState(false);
 
   // Load candidate details on mount
   useEffect(() => {
@@ -45,16 +46,16 @@ export default function App() {
 
   const activeResponse = useMemo(() => current ?? { reply: "", done: false }, [current]);
 
-  /** Start the interview for the selected candidate */
-  const start = async () => {
-    if (!selectedCandidate || loading) return;
+  /** Initiate background session creation */
+  const startSession = async (candidate: CandidateDetail) => {
+    if (loading) return;
     setLoading(true);
     setError(undefined);
+    setCurrent(undefined);
     try {
-      const response = await interview({ sessionId, candidateId: selectedCandidate.id });
+      const response = await interview({ sessionId, candidateId: candidate.id });
       setCurrent(response);
       setTranscript([{ speaker: "pilot", text: response.reply }]);
-      setPhase("interview");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not start the interview.");
       setPhase("profile");
@@ -62,6 +63,13 @@ export default function App() {
       setLoading(false);
     }
   };
+
+  /** Transition to interview phase when both animation and API call are complete */
+  useEffect(() => {
+    if (phase === "analyzing" && current && animDone) {
+      setPhase("interview");
+    }
+  }, [phase, current, animDone]);
 
   const submit = async (answer: string) => {
     const message = answer.trim();
@@ -93,6 +101,7 @@ export default function App() {
     setFeedback(undefined);
     setError(undefined);
     setSelectedCandidate(undefined);
+    setAnimDone(false);
     setSessionId(createSessionId());
     setPhase("landing");
   };
@@ -139,7 +148,8 @@ export default function App() {
     return (
       <AiAnalysis
         candidate={selectedCandidate}
-        onReady={start}
+        isLoadingSession={loading || !current}
+        onReady={() => setAnimDone(true)}
       />
     );
   }
@@ -148,7 +158,11 @@ export default function App() {
     return (
       <CandidateProfile
         candidate={selectedCandidate}
-        onBegin={() => setPhase("analyzing")}
+        onBegin={() => {
+          setAnimDone(false);
+          setPhase("analyzing");
+          startSession(selectedCandidate);
+        }}
         onBack={() => setPhase("selecting")}
       />
     );
