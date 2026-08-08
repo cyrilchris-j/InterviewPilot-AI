@@ -27,4 +27,17 @@ export class CandidateRepository {
       firstTry: candidate.signals.missionsFirstTry
     }));
   }
+
+  details() {
+    return this.candidates.map((candidate) => ({
+      id: candidate.member.id,
+      name: candidate.member.name,
+      role: candidate.member.jobRole,
+      yearsExperience: candidate.member.yearsExperience,
+      education: candidate.member.education,
+      status: candidate.member.status,
+      missions: candidate.missions,
+      signals: candidate.signals
+    }));
+  }
 }

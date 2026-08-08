@@ -1,3 +1,27 @@
+export type Mission = {
+  day: number;
+  title: string;
+  passed?: boolean;
+  skipped?: boolean;
+  attempts?: number;
+};
+
+export type CandidateDetail = {
+  id: string;
+  name: string;
+  role: string;
+  yearsExperience: number;
+  education: string;
+  status: string;
+  missions: Mission[];
+  signals: {
+    commitDays: number;
+    missionsCompleted: number;
+    missionsFirstTry: number;
+  };
+};
+
+// Lightweight summary still used for listing
 export type CandidateSummary = {
   id: string;
   name: string;
@@ -48,6 +72,7 @@ export type InterviewResponse = {
   };
   feedback?: Feedback;
   candidates?: CandidateSummary[];
+  candidateDetails?: CandidateDetail[];
   curriculumDays?: { day: number; title: string; type: string }[];
 };
 

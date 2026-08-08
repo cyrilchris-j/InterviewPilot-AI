@@ -2,8 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart3, BookOpenCheck, CheckCircle2, Download, MessageSquareText, RotateCcw, Share2, TrendingUp, XCircle, AlertCircle } from "lucide-react";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts";
-import type { Feedback, TranscriptTurn } from "../types";
-import type { UserProfile } from "../lib/profile";
+import type { CandidateDetail, Feedback, TranscriptTurn } from "../types";
 import { cn } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -17,7 +16,7 @@ type Props = {
   transcript: TranscriptTurn[];
   onRestart: () => void;
   onOpenAnalytics?: () => void;
-  profile?: UserProfile;
+  candidate?: CandidateDetail;
 };
 
 const avgTopicScore = (feedback: Feedback) => {
@@ -37,7 +36,7 @@ const getHireVerdict = (rating: string): HireVerdict => {
   return { label: "No Hire", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/30", icon: XCircle };
 };
 
-export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnalytics, profile }: Props) {
+export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnalytics, candidate }: Props) {
   const radar = feedback.topicScores.slice(0, 8).map((item) => ({ topic: `D${item.day}`, score: item.score }));
   const overall = Number(
     (feedback.topicScores.length
@@ -74,11 +73,13 @@ export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnaly
             <VerdictIcon size={22} className={verdict.color} />
             <div>
               <div className={cn("text-xl font-bold", verdict.color)}>{verdict.label}</div>
-              {profile && (
-                <div className="mt-0.5 text-sm text-muted-foreground">
-                  {profile.targetRole} at {profile.company} · {profile.difficulty} difficulty
-                </div>
-              )}
+              <div className="mt-0.5 text-sm text-muted-foreground">
+                {candidate ? (
+                  <>{candidate.name} · {candidate.role} · AI Cohort Interview</>
+                ) : (
+                  <>AI Cohort Technical Interview</>
+                )}
+              </div>
             </div>
           </div>
           <div className="hidden text-right sm:block">
@@ -94,9 +95,9 @@ export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnaly
               Interview complete
             </div>
             <h1 className="mt-1 text-3xl font-bold tracking-tight">
-              Final feedback · <span className="text-gradient capitalize">{feedback.overallRating.toLowerCase()}</span>
+              {candidate ? candidate.name : "Final Feedback"} · <span className="text-gradient capitalize">{feedback.overallRating.toLowerCase()}</span>
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">Scored across {feedback.topicScores.length} answered curriculum topics.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Scored across {feedback.topicScores.length} curriculum topics from the 31-day AI Cohort.</p>
           </motion.div>
           <div className="flex flex-wrap items-center gap-3">
             <ThemeToggle />

@@ -32,6 +32,7 @@ function buildCatalogResponse() {
     reply: "Candidate catalog loaded.",
     done: false,
     candidates: candidateRepository.summaries(),
+    candidateDetails: candidateRepository.details(),
     curriculumDays: curriculumRepository.getDays().map((day) => ({ day: day.day, title: day.title, type: day.type }))
   };
 }
