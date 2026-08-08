@@ -28,7 +28,7 @@ export class InterviewEngine {
         this.feedbackGenerator = feedbackGenerator;
         this.analyzer = new CandidateAnalyzer(this.curriculumRepository.getAll());
     }
-    async start(sessionId, candidate) {
+    async start(sessionId, candidate, profile) {
         const analysis = this.analyzer.analyze(candidate);
         const plan = this.planner.createPlan(this.analyzer.profile(candidate), this.curriculumRepository.getAll());
         const session = {
@@ -54,8 +54,12 @@ export class InterviewEngine {
         const strengthNote = analysis.strongDays.length > 0
             ? ` You showed real mastery on ${analysis.strongDays.slice(0, 2).map(d => `Day ${d}`).join(' and ')}, so I'll push depth there.`
             : "";
+        let intro = `Welcome, ${candidate.member.name}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, `;
+        if (profile) {
+            intro = `Welcome. I see you're an ${profile.targetRole} targeting a role at ${profile.company}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, `;
+        }
         return {
-            reply: `Welcome, ${candidate.member.name}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, ` +
+            reply: `${intro}` +
                 `${analysis.skippedDays.length} skipped, and an average of ${analysis.averageAttempts} attempts per mission. ` +
                 `${weakSummary}${strengthNote} ` +
                 `We'll cover ${plan.uniqueDays.length} curriculum topics across ${plan.totalQuestions} questions. Ready? ` +

@@ -30,6 +30,7 @@ export const interviewRequestSchema = z
     sessionId: z.string().trim().min(1).optional(),
     candidateId: z.string().trim().min(1).optional(),
     candidate: candidateSchema.optional(),
+    profile: z.record(z.any()).optional(),
     message: z.string().trim().min(1).max(6000).optional(),
     action: z.enum(["catalog", "reset"]).optional()
   })

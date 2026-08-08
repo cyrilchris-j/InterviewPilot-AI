@@ -34,8 +34,21 @@ export class QuestionService implements QuestionAIService {
   }
 
   private variables(input: QuestionServiceInput): PromptVariables {
+    const profile = input.userProfile;
+    const interviewContext = profile
+      ? [
+          `Target company: ${profile.company}`,
+          `Target role: ${profile.targetRole}`,
+          `Current background: ${profile.role} (${profile.experience} years)`,
+          `Interview style: ${profile.interviewType}`,
+          `Requested bar: ${profile.difficulty}`,
+          `Frame questions as a realistic ${profile.company} interviewer hiring for ${profile.targetRole}.`
+        ].join("\n")
+      : "(no onboarding profile — use cohort analysis only)";
+
     return {
       candidateProfile: describeCandidate(input.candidate),
+      interviewContext,
       dayNumber: String(input.day.day),
       dayTitle: input.day.title,
       dayType: input.day.type,

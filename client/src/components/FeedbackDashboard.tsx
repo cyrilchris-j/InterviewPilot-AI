@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart3, BookOpenCheck, Download, MessageSquareText, RotateCcw, Share2, TrendingUp } from "lucide-react";
+import { BarChart3, BookOpenCheck, CheckCircle2, Download, MessageSquareText, RotateCcw, Share2, TrendingUp, XCircle, AlertCircle } from "lucide-react";
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts";
 import type { Feedback, TranscriptTurn } from "../types";
+import type { UserProfile } from "../lib/profile";
 import { cn } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -16,6 +17,7 @@ type Props = {
   transcript: TranscriptTurn[];
   onRestart: () => void;
   onOpenAnalytics?: () => void;
+  profile?: UserProfile;
 };
 
 const avgTopicScore = (feedback: Feedback) => {
@@ -26,7 +28,16 @@ const avgTopicScore = (feedback: Feedback) => {
 const ratingTone = (rating: string): "success" | "warning" | "destructive" | "secondary" =>
   rating === "Excellent" ? "success" : rating === "Strong" ? "success" : rating === "Developing" ? "warning" : "destructive";
 
-export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnalytics }: Props) {
+type HireVerdict = { label: string; color: string; bg: string; border: string; icon: typeof CheckCircle2 };
+
+const getHireVerdict = (rating: string): HireVerdict => {
+  if (rating === "Excellent") return { label: "Strong Hire", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/30", icon: CheckCircle2 };
+  if (rating === "Strong") return { label: "Hire", color: "text-emerald-400", bg: "bg-emerald-400/8", border: "border-emerald-400/25", icon: CheckCircle2 };
+  if (rating === "Developing") return { label: "Maybe", color: "text-yellow-400", bg: "bg-yellow-400/10", border: "border-yellow-400/30", icon: AlertCircle };
+  return { label: "No Hire", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/30", icon: XCircle };
+};
+
+export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnalytics, profile }: Props) {
   const radar = feedback.topicScores.slice(0, 8).map((item) => ({ topic: `D${item.day}`, score: item.score }));
   const overall = Number(
     (feedback.topicScores.length
@@ -34,6 +45,8 @@ export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnaly
       : 0
     ).toFixed(1)
   );
+  const verdict = getHireVerdict(feedback.overallRating);
+  const VerdictIcon = verdict.icon;
 
   const share = async () => {
     const text = `InterviewPilot AI — ${feedback.overallRating} (${overall}/5)\n${feedback.summary}`;
@@ -47,6 +60,33 @@ export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnaly
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-6 md:px-8">
+        {/* HIRE VERDICT BANNER */}
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className={cn(
+            "mb-6 flex items-center justify-between gap-4 rounded-2xl border px-6 py-4",
+            verdict.bg, verdict.border
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <VerdictIcon size={22} className={verdict.color} />
+            <div>
+              <div className={cn("text-xl font-bold", verdict.color)}>{verdict.label}</div>
+              {profile && (
+                <div className="mt-0.5 text-sm text-muted-foreground">
+                  {profile.targetRole} at {profile.company} · {profile.difficulty} difficulty
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="hidden text-right sm:block">
+            <div className="text-2xl font-bold tabular-nums">{overall}<span className="text-sm font-normal text-muted-foreground">/5</span></div>
+            <div className="text-xs text-muted-foreground">avg score</div>
+          </div>
+        </motion.div>
+
         <header className="flex flex-wrap items-center justify-between gap-4">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
             <div className="flex items-center gap-2 text-sm uppercase tracking-widest text-primary">
@@ -67,9 +107,6 @@ export function FeedbackDashboard({ feedback, transcript, onRestart, onOpenAnaly
             )}
             <Button variant="outline" onClick={() => window.print()} icon={<Download size={16} />}>
               Export PDF
-            </Button>
-            <Button variant="outline" onClick={share} icon={<Share2 size={16} />}>
-              Share
             </Button>
             <Button onClick={onRestart} icon={<RotateCcw size={16} />}>
               Restart

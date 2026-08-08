@@ -28,3 +28,25 @@ test("mock interview completes after eight answers and covers at least four days
   assert.equal(latest.feedback.gaps.length > 0, true);
   assert.equal(latest.feedback.next.length > 0, true);
 });
+
+test("start personalizes intro and plan from onboarding profile", async () => {
+  const engine = new InterviewEngine(new CurriculumRepository(), new SessionManager(120 * 60_000));
+  const candidate = new CandidateRepository().findById("CAND-003");
+  assert.ok(candidate);
+
+  const start = await engine.start("profile-session", candidate, {
+    role: "Backend Developer",
+    experience: "3-5",
+    company: "Google",
+    targetRole: "AI Engineer",
+    interviewType: "System Design",
+    difficulty: "Hard"
+  });
+
+  assert.equal(start.done, false);
+  assert.match(start.reply, /Google/);
+  assert.match(start.reply, /AI Engineer/);
+  assert.match(start.reply, /system design/i);
+  assert.ok(start.question);
+  assert.ok((start.progress?.total ?? 0) >= 8);
+});

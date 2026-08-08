@@ -65,7 +65,7 @@ export const postInterview = async (request, response, next) => {
         throw new AppError("A valid candidate object or candidateId is required.", 400, "CANDIDATE_REQUIRED");
     }
     try {
-        response.json(await engine.start(sessionId, candidate));
+        response.json(await engine.start(sessionId, candidate, body.profile));
     }
     catch (error) {
         next(error);

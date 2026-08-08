@@ -7,6 +7,7 @@ import type {
   InterviewStage,
   InterviewQuestion,
   InterviewTurn,
+  InterviewUserProfile,
   QuestionType
 } from "../types/domain.js";
 import type { QuestionOutput } from "./schemas.js";
@@ -21,6 +22,7 @@ export type QuestionServiceInput = {
   previousEvaluation?: AnswerEvaluation;
   previousAnswer?: string;
   askedQuestions: readonly string[];
+  userProfile?: InterviewUserProfile;
 };
 
 export type EvaluationServiceInput = {

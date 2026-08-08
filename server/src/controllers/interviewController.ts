@@ -78,7 +78,7 @@ export const postInterview: RequestHandler<unknown, unknown, InterviewRequestBod
   }
 
   try {
-    response.json(await engine.start(sessionId, candidate));
+    response.json(await engine.start(sessionId, candidate, body.profile));
   } catch (error) {
     next(error);
   }

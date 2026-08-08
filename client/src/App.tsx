@@ -1,8 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { InterviewScreen } from "./components/InterviewScreen";
 import { Landing } from "./components/Landing";
+import { Onboarding } from "./components/Onboarding";
+import { AiAnalysis } from "./components/AiAnalysis";
 import { ApiError, interview } from "./lib/api";
 import { createSessionId } from "./lib/session";
+import { matchCandidate, type UserProfile } from "./lib/profile";
 import type { CandidateSummary, Feedback, InterviewResponse, TranscriptTurn } from "./types";
 
 const AnalyticsDashboard = lazy(() =>
@@ -12,13 +15,12 @@ const FeedbackDashboard = lazy(() =>
   import("./components/FeedbackDashboard").then((mod) => ({ default: mod.FeedbackDashboard }))
 );
 
-
-type Phase = "landing" | "interview" | "feedback" | "analytics";
+type Phase = "landing" | "onboarding" | "analyzing" | "interview" | "feedback" | "analytics";
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>("landing");
   const [candidates, setCandidates] = useState<CandidateSummary[]>([]);
-  const [selectedId, setSelectedId] = useState("");
+  const [profile, setProfile] = useState<UserProfile>();
   const [sessionId, setSessionId] = useState(createSessionId());
   const [current, setCurrent] = useState<InterviewResponse>();
   const [transcript, setTranscript] = useState<TranscriptTurn[]>([]);
@@ -31,9 +33,7 @@ export default function App() {
     interview({ action: "catalog" })
       .then((response) => {
         if (cancelled) return;
-        const loaded = response.candidates ?? [];
-        setCandidates(loaded);
-        setSelectedId((current) => current || loaded[0]?.id || "");
+        setCandidates(response.candidates ?? []);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -47,16 +47,20 @@ export default function App() {
   const activeResponse = useMemo(() => current ?? { reply: "", done: false }, [current]);
 
   const start = async () => {
-    if (loading || !selectedId) return;
+    if (!profile) return;
     setLoading(true);
     setError(undefined);
+
+    const candidateId = matchCandidate(profile, candidates);
+
     try {
-      const response = await interview({ sessionId, candidateId: selectedId });
+      const response = await interview({ sessionId, candidateId, profile });
       setCurrent(response);
       setTranscript([{ speaker: "pilot", text: response.reply }]);
       setPhase("interview");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not start the interview.");
+      setPhase("landing");
     } finally {
       setLoading(false);
     }
@@ -91,6 +95,7 @@ export default function App() {
     setCurrent(undefined);
     setTranscript([]);
     setFeedback(undefined);
+    setProfile(undefined);
     setError(undefined);
     setSessionId(createSessionId());
     setPhase("landing");
@@ -107,7 +112,7 @@ export default function App() {
   if (phase === "feedback" && feedback) {
     return (
       <Suspense fallback={<div className="grid h-screen place-items-center text-muted-foreground">Loading feedback…</div>}>
-        <FeedbackDashboard feedback={feedback} transcript={transcript} onRestart={restart} onOpenAnalytics={() => setPhase("analytics")} />
+        <FeedbackDashboard feedback={feedback} transcript={transcript} onRestart={restart} onOpenAnalytics={() => setPhase("analytics")} profile={profile} />
       </Suspense>
     );
   }
@@ -121,29 +126,37 @@ export default function App() {
         onRestart={restart}
         loading={loading}
         error={error}
+        profile={profile}
+      />
+    );
+  }
+
+  if (phase === "analyzing" && profile) {
+    return (
+      <AiAnalysis 
+        profile={profile} 
+        onReady={start}
+      />
+    );
+  }
+
+  if (phase === "onboarding") {
+    return (
+      <Onboarding 
+        onComplete={(p) => {
+          setProfile(p);
+          setPhase("analyzing");
+        }}
+        onBack={() => setPhase("landing")}
       />
     );
   }
 
   return (
     <Landing
-      candidates={candidates}
-      selectedId={selectedId}
-      onSelect={setSelectedId}
-      onStart={start}
-      loading={loading}
-      error={error}
-      onRetry={() => {
-        setError(undefined);
-        setLoading(true);
-        interview({ action: "catalog" })
-          .then((response) => {
-            const loaded = response.candidates ?? [];
-            setCandidates(loaded);
-            setSelectedId((current) => current || loaded[0]?.id || "");
-          })
-          .catch((err: unknown) => setError(err instanceof ApiError ? err.message : "Could not load candidates."))
-          .finally(() => setLoading(false));
+      onBegin={() => {
+        if (candidates.length === 0) return; // Wait for catalog to load
+        setPhase("onboarding");
       }}
     />
   );

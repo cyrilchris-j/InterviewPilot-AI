@@ -1,4 +1,12 @@
-import type { AnswerEvaluation, Candidate, Feedback, InterviewQuestion, InterviewSession, PlanItem } from "../types/domain.js";
+import type {
+  AnswerEvaluation,
+  Candidate,
+  Feedback,
+  InterviewQuestion,
+  InterviewSession,
+  InterviewUserProfile,
+  PlanItem
+} from "../types/domain.js";
 import type { InterviewResponse } from "../types/api.js";
 import { AppError } from "../errors/AppError.js";
 import { CandidateAnalyzer } from "../services/candidateAnalyzer.js";
@@ -12,6 +20,26 @@ import { SessionManager } from "../sessions/sessionManager.js";
 import { logger } from "../logger/logger.js";
 import type { AiServices } from "../ai/index.js";
 import { ConversationMemory, type MemoryTopic } from "../memory/conversationMemory.js";
+
+function normalizeUserProfile(raw?: unknown): InterviewUserProfile | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const value = raw as Record<string, unknown>;
+  const role = typeof value.role === "string" ? value.role.trim() : "";
+  const experience = typeof value.experience === "string" ? value.experience.trim() : "";
+  const company = typeof value.company === "string" ? value.company.trim() : "";
+  const targetRole = typeof value.targetRole === "string" ? value.targetRole.trim() : "";
+  const interviewType = typeof value.interviewType === "string" ? value.interviewType.trim() : "";
+  const difficulty = typeof value.difficulty === "string" ? value.difficulty.trim() : "";
+  if (!company && !targetRole && !difficulty && !interviewType) return undefined;
+  return {
+    role: role || "Candidate",
+    experience: experience || "3-5",
+    company: company || "a top tech company",
+    targetRole: targetRole || "AI Engineer",
+    interviewType: interviewType || "Mixed",
+    difficulty: difficulty || "Medium"
+  };
+}
 
 export class InterviewEngine {
   private readonly analyzer: CandidateAnalyzer;
@@ -29,9 +57,14 @@ export class InterviewEngine {
     this.analyzer = new CandidateAnalyzer(this.curriculumRepository.getAll());
   }
 
-  async start(sessionId: string, candidate: Candidate): Promise<InterviewResponse> {
+  async start(sessionId: string, candidate: Candidate, profile?: unknown): Promise<InterviewResponse> {
+    const userProfile = normalizeUserProfile(profile);
     const analysis = this.analyzer.analyze(candidate);
-    const plan = this.planner.createPlan(this.analyzer.profile(candidate), this.curriculumRepository.getAll());
+    const plan = this.planner.createPlan(
+      this.analyzer.profile(candidate),
+      this.curriculumRepository.getAll(),
+      userProfile
+    );
     const session: InterviewSession = {
       sessionId,
       candidate,
@@ -41,7 +74,8 @@ export class InterviewEngine {
       memory: ConversationMemory.create(sessionId),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      done: false
+      done: false,
+      userProfile
     };
 
     const firstPlanItem = plan.items[0];
@@ -52,17 +86,25 @@ export class InterviewEngine {
     this.sessions.set(session);
 
     const weakSummary = analysis.weakDays.length > 0
-      ? `I'll pay close attention to ${analysis.weakDays.slice(0, 2).map(d => `Day ${d}`).join(' and ')}, which showed some gaps in your journey.`
+      ? `I'll pay close attention to ${analysis.weakDays.slice(0, 2).map((d) => `Day ${d}`).join(" and ")}, which showed some gaps in your journey.`
       : "Your curriculum history looks solid across the board.";
     const strengthNote = analysis.strongDays.length > 0
-      ? ` You showed real mastery on ${analysis.strongDays.slice(0, 2).map(d => `Day ${d}`).join(' and ')}, so I'll push depth there.`
+      ? ` You showed real mastery on ${analysis.strongDays.slice(0, 2).map((d) => `Day ${d}`).join(" and ")}, so I'll push depth there.`
       : "";
+
+    const styleNote = userProfile
+      ? ` This will feel like a ${userProfile.difficulty.toLowerCase()} ${userProfile.interviewType.toLowerCase()} interview for a ${userProfile.targetRole} seat at ${userProfile.company}.`
+      : "";
+
+    const intro = userProfile
+      ? `Welcome. I see you're targeting a ${userProfile.targetRole} role at ${userProfile.company}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, `
+      : `Welcome, ${candidate.member.name}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, `;
 
     return {
       reply:
-        `Welcome, ${candidate.member.name}. I've reviewed your cohort history — ${analysis.completedDays.length} days completed, ` +
+        `${intro}` +
         `${analysis.skippedDays.length} skipped, and an average of ${analysis.averageAttempts} attempts per mission. ` +
-        `${weakSummary}${strengthNote} ` +
+        `${weakSummary}${strengthNote}${styleNote} ` +
         `We'll cover ${plan.uniqueDays.length} curriculum topics across ${plan.totalQuestions} questions. Ready? ` +
         `Question 1 of ${plan.totalQuestions}: ${firstQuestion.text}`,
       done: false,
@@ -212,7 +254,8 @@ export class InterviewEngine {
         difficulty: planItem.difficulty,
         previousEvaluation,
         previousAnswer: session.memory.latestTurn?.answer,
-        askedQuestions: session.memory.askedQuestions
+        askedQuestions: session.memory.askedQuestions,
+        userProfile: session.userProfile
       });
       if (session.memory.hasAsked(output.text)) {
         logger.warn("AI generated a duplicate question; falling back to deterministic generator.", {

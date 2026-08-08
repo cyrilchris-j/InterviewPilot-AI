@@ -220,7 +220,9 @@ export type InterviewTurn = {
   question: InterviewQuestion;
   answer: string;
   evaluation: AnswerEvaluation;
-};export type Feedback = {
+};
+
+export type Feedback = {
   summary: string;
   strengths: string[];
   gaps: string[];
@@ -229,6 +231,16 @@ export type InterviewTurn = {
   recommendedDays: number[];
   learningPath: string[];
   overallRating: string;
+};
+
+/** Optional onboarding preferences that personalize interview style and difficulty. */
+export type InterviewUserProfile = {
+  role: string;
+  experience: string;
+  company: string;
+  targetRole: string;
+  interviewType: string;
+  difficulty: string;
 };
 
 export type InterviewSession = {
@@ -242,4 +254,6 @@ export type InterviewSession = {
   createdAt: string;
   updatedAt: string;
   done: boolean;
+  /** Onboarding profile from the client (company, role bar, difficulty preference). */
+  userProfile?: InterviewUserProfile;
 };

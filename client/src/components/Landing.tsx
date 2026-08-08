@@ -1,168 +1,119 @@
 import { motion } from "framer-motion";
-import { ArrowRight, BrainCircuit, CheckCircle2, GitBranch, Layers, Loader2, Radar, Sparkles, Target, UserRound } from "lucide-react";
-import type { CandidateSummary } from "../types";
-import { cn } from "../lib/utils";
-import { Badge } from "./ui/badge";
+import { ArrowRight, BrainCircuit, Sparkles, Target, Zap, Shield } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
-import { Skeleton } from "./ui/skeleton";
 import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
-  candidates: CandidateSummary[];
-  selectedId: string;
-  onSelect: (id: string) => void;
-  onStart: () => void;
-  loading: boolean;
-  error?: string;
-  onRetry?: () => void;
+  onBegin: () => void;
 };
 
-const features = [
-  { icon: Target, title: "Adaptive questions", body: "Difficulty rises and falls with every answer, tuned to the candidate's 31-day cohort history." },
-  { icon: BrainCircuit, title: "Session memory", body: "Topics, scores, and mistakes persist so follow-ups build on what was already said." },
-  { icon: Radar, title: "Production-grounded", body: "Every score is tied to correctness, reasoning, communication, depth, and practical understanding." },
-  { icon: Layers, title: "Clear roadmap", body: "Close with topic scores, recommended curriculum days, and a learning path to act on." }
+const chips = [
+  { icon: Zap, label: "Adaptive difficulty" },
+  { icon: Shield, label: "Session memory" },
+  { icon: Target, label: "Scored feedback" },
+  { icon: Sparkles, label: "AI-personalized" },
 ];
 
-export function Landing({ candidates, selectedId, onSelect, onStart, loading, error, onRetry }: Props) {
-  const selected = candidates.find((candidate) => candidate.id === selectedId) ?? candidates[0];
+const companies = ["Google", "OpenAI", "Meta", "Amazon", "Anthropic", "Microsoft"];
 
+export function Landing({ onBegin }: Props) {
   return (
-    <main className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-60 [mask-image:radial-gradient(ellipse_70%_55%_at_50%_0%,black,transparent)]" />
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
+    <main className="relative flex min-h-screen flex-col overflow-hidden">
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(ellipse_80%_60%_at_50%_-5%,black,transparent)]" />
+      <div className="pointer-events-none absolute -top-64 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-primary/12 blur-3xl" />
+      <div className="pointer-events-none absolute top-[55%] right-0 h-[400px] w-[400px] rounded-full bg-emerald-400/4 blur-3xl" />
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 md:px-8">
-        <header className="flex items-center justify-between py-6">
-          <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
-              <BrainCircuit size={22} />
-            </div>
-            <div>
-              <div className="text-base font-bold tracking-tight">InterviewPilot AI</div>
-              <div className="text-xs text-muted-foreground">Senior-engineer technical interviews</div>
-            </div>
+      {/* Header */}
+      <header className="relative flex items-center justify-between px-6 py-6 md:px-12">
+        <div className="flex items-center gap-3">
+          <div className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground shadow-glow">
+            <BrainCircuit size={18} />
           </div>
-          <ThemeToggle />
-        </header>
-
-        <section className="grid items-start gap-10 pt-6 lg:grid-cols-[1.25fr_1fr] lg:pt-14">
           <div>
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <Badge tone="success" className="gap-2 px-3 py-1 text-sm">
-                <Sparkles size={14} />
-                AI Interview Engine
-              </Badge>
-              <h1 className="mt-5 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
-                Interviews that feel like <span className="text-gradient whitespace-nowrap">real engineering</span> conversations.
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
-                An adaptive interviewer that reads your cohort history, plans eight grounded questions, tracks every answer in
-                memory, and turns the session into a scored learning roadmap — like a premium mock interview platform.
-              </p>
-            </motion.div>
+            <div className="text-sm font-bold tracking-tight">InterviewPilot AI</div>
+          </div>
+        </div>
+        <ThemeToggle />
+      </header>
 
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mt-10 grid gap-4 sm:grid-cols-2"
-            >
-              {features.map((feature) => (
-                <Card key={feature.title} className="p-5 transition-colors hover:border-primary/50">
-                  <feature.icon className="size-5 text-primary" />
-                  <div className="mt-3 font-semibold">{feature.title}</div>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{feature.body}</p>
-                </Card>
-              ))}
-            </motion.div>
+      {/* Hero */}
+      <div className="relative flex flex-1 flex-col items-center justify-center px-4 pb-24 pt-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-4xl"
+        >
+          {/* Pill badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/8 px-4 py-1.5 text-sm font-medium text-primary backdrop-blur-sm">
+            <Sparkles size={13} />
+            Personalized AI Interview Engine
           </div>
 
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.15 }}>
-            <Card className="overflow-hidden border-border/70 shadow-xl">
-              <div className="border-b border-border bg-muted/40 p-5">
-                <div className="flex items-center gap-2">
-                  <UserRound size={16} className="text-primary" />
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Choose a candidate</h2>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">The engine tailors the session to this profile's real cohort history.</p>
-              </div>
+          {/* Headline */}
+          <h1 className="mt-8 text-5xl font-bold leading-[1.04] tracking-tight md:text-7xl lg:text-[88px]">
+            Your interview,
+            <br />
+            <span className="text-gradient">built for you.</span>
+          </h1>
 
-              <div className="space-y-3 p-5">
-                {error ? (
-                  <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-4">
-                    <div className="text-sm font-semibold text-destructive">Could not load interviews</div>
-                    <p className="mt-1 text-sm text-muted-foreground">{error}</p>
-                    {onRetry && (
-                      <Button variant="outline" size="sm" className="mt-3" onClick={onRetry} disabled={loading}>
-                        {loading ? "Retrying…" : "Retry"}
-                      </Button>
-                    )}
-                  </div>
-                ) : candidates.length === 0 ? (
-                  <>
-                    <Skeleton className="h-20" />
-                    <Skeleton className="h-20" />
-                  </>
-                ) : (
-                  <div role="radiogroup" aria-label="Choose a candidate">
-                    {candidates.map((candidate) => {
-                      const active = candidate.id === selectedId;
-                      return (
-                        <button
-                          key={candidate.id}
-                          role="radio"
-                          aria-checked={active}
-                          onClick={() => onSelect(candidate.id)}
-                          className={cn(
-                            "group mb-3 w-full rounded-lg border p-4 text-left transition-all last:mb-0",
-                            active ? "border-primary bg-primary/10 shadow-sm" : "border-border bg-background hover:border-primary/60 hover:bg-muted/40"
-                          )}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className="font-semibold">{candidate.name}</div>
-                              <div className="mt-0.5 text-sm text-muted-foreground">
-                                {candidate.role} · {candidate.yearsExperience} yrs
-                              </div>
-                            </div>
-                            <CheckCircle2 className={cn("size-5 shrink-0", active ? "text-primary" : "text-muted/40")} />
-                          </div>
-                          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                            <span className="inline-flex items-center gap-1">
-                              <GitBranch size={12} /> {candidate.completed}/31 missions
-                            </span>
-                            <span className="inline-flex items-center gap-1">
-                              <Sparkles size={12} /> {candidate.firstTry} first-try
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+          {/* Subtext */}
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground md:text-xl">
+            Tell us who you are. Our AI builds a fully personalized interview —
+            adaptive questions, real-time difficulty tuning, and a detailed scorecard at the end.
+          </p>
 
-              <div className="border-t border-border p-5">
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={onStart}
-                  disabled={!selected || loading}
-                  icon={loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
-                >
-                  {loading ? "Preparing your interview..." : "Start Interview"}
-                </Button>
-                {selected && (
-                  <p className="mt-3 text-center text-xs text-muted-foreground">
-                    Plan adapts to <span className="font-semibold text-foreground">{selected.name}</span>'s profile.
-                  </p>
-                )}
-              </div>
-            </Card>
+          {/* CTA */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="mt-12"
+          >
+            <Button
+              size="lg"
+              onClick={onBegin}
+              className="h-14 rounded-2xl px-10 text-[15px] font-semibold shadow-glow transition-all hover:scale-105"
+              icon={<ArrowRight size={18} />}
+            >
+              Build My Interview
+            </Button>
+            <p className="mt-4 text-sm text-muted-foreground">Takes 30 seconds · No account needed</p>
           </motion.div>
-        </section>
+
+          {/* Feature chips */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-4"
+          >
+            {chips.map((chip) => (
+              <div key={chip.label} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <chip.icon size={14} className="text-primary" />
+                {chip.label}
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Company logos bar */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-4 px-4"
+        >
+          <p className="text-xs text-muted-foreground">Prep for interviews at</p>
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            {companies.map((c) => (
+              <span key={c} className="text-sm font-semibold text-muted-foreground/60 transition-colors hover:text-muted-foreground">
+                {c}
+              </span>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </main>
   );

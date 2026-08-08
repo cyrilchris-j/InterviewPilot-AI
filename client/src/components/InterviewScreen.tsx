@@ -13,6 +13,8 @@ import { Typewriter } from "./Typewriter";
 import { TypingIndicator } from "./TypingIndicator";
 import { ThemeToggle } from "./ThemeToggle";
 
+import type { UserProfile } from "../lib/profile";
+
 type Props = {
   response: InterviewResponse;
   transcript: TranscriptTurn[];
@@ -20,9 +22,10 @@ type Props = {
   onRestart: () => void;
   loading: boolean;
   error?: string;
+  profile?: UserProfile;
 };
 
-export function InterviewScreen({ response, transcript, onSubmit, onRestart, loading, error }: Props) {
+export function InterviewScreen({ response, transcript, onSubmit, onRestart, loading, error, profile }: Props) {
   const [answer, setAnswer] = useState("");
   const question = response.question;
   const progress = response.progress ?? { answered: 0, total: 8, percent: 0, coveredDays: [] };
@@ -44,9 +47,14 @@ export function InterviewScreen({ response, transcript, onSubmit, onRestart, loa
           <div className="grid size-8 place-items-center rounded-lg bg-primary/15 text-primary">
             <Sparkles size={15} />
           </div>
-          <span className="text-sm font-semibold">
-            Q{progress.answered + 1} / {progress.total}
-          </span>
+          <div>
+            <div className="text-sm font-semibold">
+              Q{progress.answered + 1} / {progress.total}
+            </div>
+            {profile && (
+              <div className="text-xs text-muted-foreground">{profile.company} · {profile.targetRole}</div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge tone={question?.difficulty === "hard" ? "destructive" : question?.difficulty === "easy" ? "success" : "warning"}>
@@ -128,11 +136,25 @@ export function InterviewScreen({ response, transcript, onSubmit, onRestart, loa
                 <Sparkles size={18} />
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">
-                  Question <span className="font-semibold text-foreground">{question?.index ?? 1}</span> · {question?.stage || "Loading..."}
-                </div>
+                {profile ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold">{profile.company}</span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-sm font-semibold text-muted-foreground">{profile.targetRole}</span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-xs text-muted-foreground">{profile.difficulty}</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">
+                    Question <span className="font-semibold text-foreground">{question?.index ?? 1}</span> · {question?.stage || "Loading..."}
+                  </div>
+                )}
                 {initialLoading ? (
-                  <div className="mt-1 h-6 w-48 animate-pulse rounded bg-muted"></div>
+                  <div className="mt-1 h-5 w-48 animate-pulse rounded bg-muted"></div>
+                ) : profile ? (
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    Question <span className="font-semibold text-foreground">{question?.index ?? 1}</span> of {progress.total} · {question?.stage || "Warmup"}
+                  </div>
                 ) : (
                   <h2 className="text-lg font-semibold leading-tight">{question?.dayTitle}</h2>
                 )}

@@ -77,3 +77,44 @@ test("plan includes weak days with matching rationale", () => {
   const rationales = plan.items.map((item) => item.rationale);
   assert.ok(rationales.some((text) => text.includes("probe")));
 });
+
+test("onboarding profile raises difficulty and biases question style", () => {
+  const candidate = new CandidateRepository().findById("CAND-003");
+  assert.ok(candidate);
+  const profile = analyzer.profile(candidate);
+
+  const defaultPlan = planner.createPlan(profile, curriculum);
+  const staffSystemPlan = planner.createPlan(profile, curriculum, {
+    role: "AI Engineer",
+    experience: "5-10",
+    company: "OpenAI",
+    targetRole: "AI Engineer",
+    interviewType: "System Design",
+    difficulty: "Staff"
+  });
+
+  assert.ok(staffSystemPlan.items.every((item) => item.difficulty === "hard"));
+  assert.ok(staffSystemPlan.items.some((item) => item.questionType === "Architecture"));
+  assert.ok(
+    staffSystemPlan.items.filter((item) => item.questionType === "Architecture").length >
+      defaultPlan.items.filter((item) => item.questionType === "Architecture").length
+  );
+  assert.ok(staffSystemPlan.items[0].rationale.includes("OpenAI"));
+});
+
+test("easy difficulty preference keeps early questions approachable", () => {
+  const candidate = new CandidateRepository().findById("CAND-001");
+  assert.ok(candidate);
+  const profile = analyzer.profile(candidate);
+  const plan = planner.createPlan(profile, curriculum, {
+    role: "Student",
+    experience: "0",
+    company: "Startup",
+    targetRole: "Software Engineer",
+    interviewType: "Technical",
+    difficulty: "Easy"
+  });
+
+  assert.equal(plan.items[0].difficulty, "easy");
+  assert.ok(plan.items.every((item) => item.difficulty !== "hard" || item.index > 5));
+});

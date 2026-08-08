@@ -5,6 +5,7 @@ import type {
   Difficulty,
   InterviewPlan,
   InterviewStage,
+  InterviewUserProfile,
   PlanItem,
   PlanRoadmap,
   QuestionType,
@@ -15,7 +16,7 @@ import { unique } from "../utils/text.js";
 const PLAN_SIZE = 8;
 const MIN_DISTINCT_DAYS = 4;
 
-const ROADMAP: Array<{ stage: InterviewStage; questionType: QuestionType }> = [
+const DEFAULT_ROADMAP: Array<{ stage: InterviewStage; questionType: QuestionType }> = [
   { stage: "Warmup", questionType: "Concept" },
   { stage: "Concept", questionType: "Concept" },
   { stage: "Scenario", questionType: "Scenario" },
@@ -26,19 +27,63 @@ const ROADMAP: Array<{ stage: InterviewStage; questionType: QuestionType }> = [
   { stage: "Reflection", questionType: "Follow-up" }
 ];
 
+/** Style-biased roadmaps for onboarding interview-type preferences. */
+const STYLE_ROADMAPS: Record<string, Array<{ stage: InterviewStage; questionType: QuestionType }>> = {
+  Technical: DEFAULT_ROADMAP,
+  Behavioral: [
+    { stage: "Warmup", questionType: "Concept" },
+    { stage: "Scenario", questionType: "Scenario" },
+    { stage: "Scenario", questionType: "Scenario" },
+    { stage: "Tradeoff", questionType: "Tradeoff" },
+    { stage: "Production", questionType: "Production" },
+    { stage: "Scenario", questionType: "Failure Analysis" },
+    { stage: "Reflection", questionType: "Follow-up" },
+    { stage: "Reflection", questionType: "Follow-up" }
+  ],
+  "System Design": [
+    { stage: "Warmup", questionType: "Concept" },
+    { stage: "Architecture", questionType: "Architecture" },
+    { stage: "Architecture", questionType: "Architecture" },
+    { stage: "Tradeoff", questionType: "Tradeoff" },
+    { stage: "Production", questionType: "Production" },
+    { stage: "Advanced", questionType: "Architecture" },
+    { stage: "Scenario", questionType: "Scenario" },
+    { stage: "Reflection", questionType: "Follow-up" }
+  ],
+  Coding: [
+    { stage: "Warmup", questionType: "Concept" },
+    { stage: "Scenario", questionType: "Scenario" },
+    { stage: "Scenario", questionType: "Debugging" },
+    { stage: "Architecture", questionType: "Architecture" },
+    { stage: "Production", questionType: "Production" },
+    { stage: "Scenario", questionType: "Debugging" },
+    { stage: "Tradeoff", questionType: "Tradeoff" },
+    { stage: "Reflection", questionType: "Follow-up" }
+  ],
+  Mixed: DEFAULT_ROADMAP
+};
+
 export class InterviewPlanner {
-  createPlan(profile: CandidateProfile, curriculum: Curriculum): InterviewPlan {
+  createPlan(
+    profile: CandidateProfile,
+    curriculum: Curriculum,
+    userProfile?: InterviewUserProfile
+  ): InterviewPlan {
     const daysByNumber = new Map(curriculum.days.map((day) => [day.day, day]));
     const selectedDays = this.selectDays(profile, curriculum, daysByNumber);
     this.assertInDays(selectedDays);
 
+    const styleKey = userProfile?.interviewType ?? "Mixed";
+    const roadmapTemplate = STYLE_ROADMAPS[styleKey] ?? DEFAULT_ROADMAP;
+    const difficultyBias = this.difficultyBias(userProfile?.difficulty);
+
     const roadmap: PlanRoadmap[] = selectedDays.map((day, position) => ({
       position: position + 1,
-      stage: ROADMAP[position].stage,
-      questionType: ROADMAP[position].questionType,
+      stage: roadmapTemplate[position].stage,
+      questionType: roadmapTemplate[position].questionType,
       day: day.day,
       dayTitle: day.title,
-      difficulty: this.difficultyFor(position, profile.experience.seniority)
+      difficulty: this.difficultyFor(position, profile.experience.seniority, difficultyBias)
     }));
 
     const items: PlanItem[] = roadmap.map((step, position) => {
@@ -50,7 +95,7 @@ export class InterviewPlanner {
         objective: this.pickObjective(day, position),
         questionType: step.questionType,
         difficulty: step.difficulty,
-        rationale: this.rationaleFor(profile, step.day)
+        rationale: this.rationaleFor(profile, step.day, userProfile)
       };
     });
 
@@ -91,13 +136,38 @@ export class InterviewPlanner {
     }
   }
 
-  private difficultyFor(position: number, seniority: Seniority): Difficulty {
-    if (position >= 5) return "hard";
-    if (position >= 2) return "medium";
-    return seniority === "senior" ? "medium" : "easy";
+  private difficultyBias(preference?: string): number {
+    switch (preference) {
+      case "Easy":
+        return -1;
+      case "Hard":
+      case "Senior":
+        return 1;
+      case "Staff":
+        return 2;
+      default:
+        return 0;
+    }
   }
 
-  private rationaleFor(profile: CandidateProfile, dayNumber: number): string {
+  private difficultyFor(position: number, seniority: Seniority, bias = 0): Difficulty {
+    const levels: Difficulty[] = ["easy", "medium", "hard"];
+    let base = 0;
+    if (position >= 5) base = 2;
+    else if (position >= 2) base = 1;
+    else base = seniority === "senior" ? 1 : 0;
+    return levels[Math.max(0, Math.min(2, base + bias))];
+  }
+
+  private rationaleFor(
+    profile: CandidateProfile,
+    dayNumber: number,
+    userProfile?: InterviewUserProfile
+  ): string {
+    const target =
+      userProfile?.company && userProfile?.targetRole
+        ? ` Calibrate for a ${userProfile.targetRole} bar at ${userProfile.company}.`
+        : "";
     const weakArea = profile.weakAreas.find((area) => area.day === dayNumber);
     if (weakArea) {
       const reason =
@@ -106,15 +176,15 @@ export class InterviewPlanner {
           : weakArea.reason === "struggled"
             ? `needed ${weakArea.attempts} attempts; probe understanding before increasing difficulty`
             : "was skipped; verify the material was self-studied";
-      return `Day ${dayNumber} ${reason}.`;
+      return `Day ${dayNumber} ${reason}.${target}`;
     }
     if (profile.strengths.some((strength) => strength.day === dayNumber)) {
-      return `Day ${dayNumber} was completed on the first attempt; use it to test depth and transfer.`;
+      return `Day ${dayNumber} was completed on the first attempt; use it to test depth and transfer.${target}`;
     }
     if (profile.completedDays.includes(dayNumber)) {
-      return `Day ${dayNumber} was completed; reinforce it before moving on.`;
+      return `Day ${dayNumber} was completed; reinforce it before moving on.${target}`;
     }
-    return `Day ${dayNumber} rounds out end-to-end AI engineering readiness.`;
+    return `Day ${dayNumber} rounds out end-to-end AI engineering readiness.${target}`;
   }
 
   private pickObjective(day: CurriculumDay, position: number): string {
