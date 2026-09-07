@@ -1,8 +1,3 @@
-Yes BOSS. Below is the **complete `README.md`**, aligned with your current GitHub repo and actual implementation. Your repo currently has the `client`, `server`, `shared`, `docs`, `prompts`, and `PROMPTS.md` structure, and the deployed Vercel URL is already associated with the repository. ([GitHub][1])
-
-**Replace your entire `README.md` with this single block:**
-
-````markdown
 # 🎯 InterviewPilot AI
 
 > **Build the interviewer, not the interview.**
